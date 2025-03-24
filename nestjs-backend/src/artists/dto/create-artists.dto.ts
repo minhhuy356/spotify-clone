@@ -7,6 +7,7 @@ import {
   IsNumber,
 } from 'class-validator';
 import { Transform, Type } from 'class-transformer';
+import { IsObjectId } from '@/decorator/is-object-id';
 
 export class CreateArtistsDto {
   @IsString()

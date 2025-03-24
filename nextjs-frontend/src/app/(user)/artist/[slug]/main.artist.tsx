@@ -2,7 +2,12 @@
 import { useEffect, useState, useRef } from "react";
 import { Vibrant } from "node-vibrant/browser";
 import Color from "color"; // Import thư viện màu sắc
-import { IArtist, IMonthlyListener, ITrack } from "@/types/data";
+import {
+  IArtist,
+  IChooseByArtist,
+  IMonthlyListener,
+  ITrack,
+} from "@/types/data";
 import { backendUrl, disk_artists } from "@/api/url";
 import { TiTick } from "react-icons/ti";
 import AvatarArtist from "./main/avatar";
@@ -12,18 +17,25 @@ import ButtonSubscribe from "@/components/button/button.subscribe";
 import { useAppDispatch, useAppSelector } from "@/lib/hook";
 import { selectSession } from "@/lib/features/auth/auth.slice";
 import { HiDotsHorizontal } from "react-icons/hi";
-import ButtonDot from "@/components/button/button.dot";
+import ButtonDot from "@/components/button/button.dot.artist";
 import { setOpenContextMenuArtist } from "@/lib/features/local/local.slice";
-import ButtonDotArtist from "@/components/button/button.dot";
+import ButtonDotArtist from "@/components/button/button.dot.artist";
 import PopularTrack from "./popular-songs";
+import ChooseByArtist from "./choose-by-artist";
 
 interface IProps {
   artist: IArtist;
   trackForArtist: ITrack[];
   monthlyListener: IMonthlyListener;
+  chooseByArtist: IChooseByArtist;
 }
 
-const MainArtist = ({ artist, trackForArtist, monthlyListener }: IProps) => {
+const MainArtist = ({
+  artist,
+  trackForArtist,
+  monthlyListener,
+  chooseByArtist,
+}: IProps) => {
   const session = useAppSelector(selectSession);
   const dispatch = useAppDispatch();
   const imgRef = useRef<HTMLImageElement>(null);
@@ -140,8 +152,14 @@ const MainArtist = ({ artist, trackForArtist, monthlyListener }: IProps) => {
               </div>
             </div>
             {/*List nhạc của nghệ sĩ*/}
-            <div className="py-3 px-6 ">
-              <PopularTrack artist={artist} trackForArtist={trackForArtist} />
+            <div className="py-3 px-6 flex flex-col 4xl:flex-row gap-6">
+              <div className="w-[100%] 4xl:w-[60%]">
+                <PopularTrack artist={artist} trackForArtist={trackForArtist} />
+              </div>
+
+              <ChooseByArtist chooseByArtist={chooseByArtist} />
+
+              {/*Lựa chọn của nghệ sĩ*/}
             </div>
           </div>
         </div>

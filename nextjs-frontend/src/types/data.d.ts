@@ -41,6 +41,14 @@ export interface IArtist {
   coverImgUrl: string;
 }
 
+export interface IChooseByArtist {
+  _id: string;
+  artist: IArtist;
+  chooseTrack: ITrack;
+  chooseTitle: string;
+  chooseImgUrl: string;
+}
+
 export interface IArtistTypeDetail {
   _id: string;
   name: string;

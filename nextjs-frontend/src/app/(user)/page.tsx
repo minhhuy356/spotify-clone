@@ -25,10 +25,10 @@ export default async function HomePage() {
   });
 
   return (
-    <div className="">
+    <>
       <Slider title={"Rap"} data={rap?.data ?? []} />
       <Slider title={"Pop"} data={pop?.data ?? []} />
       <Slider title={"Balad"} data={balad?.data ?? []} />
-    </div>
+    </>
   );
 }

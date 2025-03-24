@@ -23,8 +23,11 @@ export const api_user_activity = {
   artist: `${url_api_user_activity}artist`,
 };
 
+export const url_api_choose_by_artist = "api/v1/choose-by-artist/";
 export const url_api_artists = "api/v1/artists/";
-export const api_artists = {};
+export const api_artists = {
+  choose: `${url_api_choose_by_artist}`,
+};
 
 export const url_api_artist_type_detail = "api/v1/artist-type-detail/";
 export const api_artist_type_detail = {};
@@ -54,6 +57,7 @@ export const disk_artists = {
   profile: `${url_disk_artists}profile/`,
   avatar: `${url_disk_artists}avatar/`,
   cover: `${url_disk_artists}cover/`,
+  choose: `${url_disk_artists}choose/`,
 };
 
 export const url_disk_preview = "preview/";

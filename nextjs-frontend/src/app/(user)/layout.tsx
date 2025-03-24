@@ -410,9 +410,7 @@ export default function RootLayout({
               }  overflow-hidden bg-base min-h-0  flex flex-col`}
               ref={rightRef}
             >
-              <div>
-                <Right fatherRef={rightRef} rightWidth={rightWidth} />
-              </div>
+              <Right fatherRef={rightRef} rightWidth={rightWidth} />
             </div>
           </div>
 

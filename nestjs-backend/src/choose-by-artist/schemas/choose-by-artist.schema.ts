@@ -1,38 +1,32 @@
+import { Artist } from '@/artists/schemas/artist.schema';
 import { Track } from '@/tracks/schemas/track.schemas';
 import { User } from '@/users/schemas/user.schema';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import mongoose, { HydratedDocument, ObjectId } from 'mongoose';
 
-export type ArtistDocument = HydratedDocument<Artist>;
+export type ChooseByArtistDocument = HydratedDocument<ChooseByArtist>;
 
 @Schema({ timestamps: true })
-export class Artist {
+export class ChooseByArtist {
+  @Prop({
+    type: mongoose.Schema.Types.ObjectId,
+    ref: Artist.name,
+    required: true,
+  })
+  artist: string;
+
   @Prop({ required: true })
-  stageName: string;
+  chooseImgUrl: string;
 
   @Prop({ default: '' })
-  realName: string;
+  chooseTitle?: string;
 
-  @Prop({ default: '' })
-  date: Date;
-
-  @Prop({ default: '' })
-  country: string;
-
-  @Prop({ default: '' })
-  description: string;
-
-  @Prop({ default: '' })
-  profileImgUrl: string;
-
-  @Prop({ default: '' })
-  avatarImgUrl: string;
-
-  @Prop({ default: '' })
-  coverImgUrl: string;
-
-  @Prop({ default: 0 })
-  countLike: number;
+  @Prop({
+    type: mongoose.Schema.Types.ObjectId,
+    ref: Track.name,
+    required: true,
+  })
+  chooseTrack: ObjectId;
 
   @Prop({
     type: mongoose.Schema.Types.ObjectId,
@@ -59,4 +53,5 @@ export class Artist {
   deletedAt: Date;
 }
 
-export const ArtistSchema = SchemaFactory.createForClass(Artist);
+export const ChooseByArtistSchema =
+  SchemaFactory.createForClass(ChooseByArtist);

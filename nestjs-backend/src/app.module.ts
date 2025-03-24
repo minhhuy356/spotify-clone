@@ -24,6 +24,7 @@ import { UserTypesModule } from './user-type/user-type.module';
 import { AlbumsModule } from './albums/albums.module';
 import { TrackPlaysModule } from './track-plays/track-plays.module';
 import { MonthlyListenersModule } from './monthly-listeners/monthly-listeners.module';
+import { ChooseByArtistsModule } from './choose-by-artist/choose-by-artist.module';
 
 @Module({
   imports: [
@@ -61,6 +62,7 @@ import { MonthlyListenersModule } from './monthly-listeners/monthly-listeners.mo
     AlbumsModule,
     TrackPlaysModule,
     MonthlyListenersModule,
+    ChooseByArtistsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

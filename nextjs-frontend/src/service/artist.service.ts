@@ -1,16 +1,16 @@
 import { sendRequest } from "@/api/api";
-import { backendUrl, url_api_artists } from "@/api/url";
+import { api_artists, backendUrl, url_api_artists } from "@/api/url";
 import { INewArtist } from "@/app/(admin)/admin/artist/upload/page";
-import { IArtist, IAuth, IUser } from "@/types/data";
+import { IArtist, IAuth, IChooseByArtist, IUser } from "@/types/data";
 
 export const getArtistById = async (_id: string) => {
   try {
-    const trackForArtist = await sendRequest<IBackendRes<IArtist>>({
+    const res = await sendRequest<IBackendRes<IArtist>>({
       url: `${backendUrl}${url_api_artists}${_id}`,
       method: "GET",
     });
-    console.log(trackForArtist.data);
-    return trackForArtist.data;
+
+    return res.data;
   } catch (error) {
     throw new Error("Lỗi khi lấy danh sách bài hát của nghệ sĩ");
   }
@@ -21,7 +21,7 @@ export const uploadArtist = async (
   access_token: string
 ) => {
   try {
-    const trackForArtist = await sendRequest<IBackendRes<INewArtist>>({
+    const res = await sendRequest<IBackendRes<INewArtist>>({
       url: `${backendUrl}${url_api_artists}`,
       method: "POST",
       body: {
@@ -38,7 +38,20 @@ export const uploadArtist = async (
       },
     });
 
-    return trackForArtist.data;
+    return res.data;
+  } catch (error) {
+    throw new Error("Lỗi khi lấy danh sách bài hát của nghệ sĩ");
+  }
+};
+
+export const getChooseByArtist = async (_id: string) => {
+  try {
+    const res = await sendRequest<IBackendRes<IChooseByArtist>>({
+      url: `${backendUrl}${api_artists.choose}${_id}`,
+      method: "GET",
+    });
+    console.log(res);
+    return res.data;
   } catch (error) {
     throw new Error("Lỗi khi lấy danh sách bài hát của nghệ sĩ");
   }
@@ -47,4 +60,5 @@ export const uploadArtist = async (
 export const artist_service = {
   getArtistById,
   uploadArtist,
+  getChooseByArtist,
 };

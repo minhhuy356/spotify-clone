@@ -1,32 +1,48 @@
-import SongCardArtist from "@/components/card/card.song.artist";
-import SongCard from "@/components/card/card.song.artist";
+import { useState } from "react";
+import CardTrackArtist from "@/components/card/card.track.artist";
 import { IArtist, ITrack } from "@/types/data";
+
 interface IProps {
   trackForArtist: ITrack[];
   artist: IArtist;
 }
 
+const maxTrack = 5;
+
 const PopularTrack = ({ trackForArtist, artist }: IProps) => {
+  const [showAll, setShowAll] = useState(false);
+  const displayedTracks = showAll
+    ? trackForArtist
+    : trackForArtist.slice(0, maxTrack);
+
   return (
-    <div className="">
+    <div>
       <div className="mb-6">
-        <span className="text-2xl font-semibold ">Phổ biến</span>
+        <span className="text-2xl font-semibold">Phổ biến</span>
       </div>
 
-      <div className="flex flex-col ">
-        {" "}
-        {trackForArtist.map((track, index) => {
-          return (
-            <SongCardArtist
-              artist={artist}
-              track={track}
-              index={index}
-              trackForArtist={trackForArtist}
-            />
-          );
-        })}
+      <div className="flex flex-col">
+        {displayedTracks.map((track, index) => (
+          <CardTrackArtist
+            artist={artist}
+            track={track}
+            index={index}
+            trackForArtist={trackForArtist}
+          />
+        ))}
       </div>
+
+      {/* Hiển thị nút nếu có nhiều hơn 2 bài hát */}
+      {trackForArtist.length > maxTrack && (
+        <div
+          onClick={() => setShowAll(!showAll)}
+          className="mt-3 px-4 py-2  text-white-06  cursor-pointer font-semibold hover:text-white"
+        >
+          {showAll ? "Ẩn bớt" : "Xem thêm"}
+        </div>
+      )}
     </div>
   );
 };
+
 export default PopularTrack;

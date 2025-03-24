@@ -339,7 +339,7 @@ export class TrackArtistsService {
     return Object.values(groupedData).slice(0, limit);
   }
 
-  async findAllTrackByArtist(artistId: string) {
+  async findAllTrackByArtist(artistId: string, sortBy?: string) {
     // ✅ Truy vấn tất cả track-artist có track (populate track trước)
     const rawData = await this.trackArtistModel
       .find({ artist: artistId })
@@ -348,24 +348,41 @@ export class TrackArtistsService {
       .exec();
 
     // ✅ Gộp bài hát có cùng track._id
-    const groupedData = rawData.reduce((acc, item) => {
-      const trackId = (item.track as any)._id.toString();
+    const groupedData = rawData.reduce(
+      (acc, item) => {
+        const trackId = (item.track as any)._id.toString();
 
-      if (!acc[trackId]) {
-        acc[trackId] = {
-          ...item.track,
-          artists: [],
-        };
-      }
-      acc[trackId].artists.push({
-        artist: item.artist,
-        artistTypeDetail: item.artistTypeDetail,
-        useStageName: item.useStageName,
+        if (!acc[trackId]) {
+          acc[trackId] = {
+            ...item.track,
+            artists: [],
+          };
+        }
+        acc[trackId].artists.push({
+          artist: item.artist,
+          artistTypeDetail: item.artistTypeDetail,
+          useStageName: item.useStageName,
+        });
+        return acc;
+      },
+      {} as Record<string, any>,
+    );
+
+    // ✅ Chuyển object thành mảng
+    let finalTracks = Object.values(groupedData);
+
+    // ✅ Chỉ sắp xếp nếu có tham số sortBy
+    if (sortBy) {
+      const isDescending = sortBy.startsWith('-');
+      const sortField = isDescending ? sortBy.substring(1) : sortBy; // Bỏ dấu "-" nếu có
+
+      finalTracks.sort((a, b) => {
+        const valueA = a[sortField] || 0;
+        const valueB = b[sortField] || 0;
+        return isDescending ? valueB - valueA : valueA - valueB;
       });
-      return acc;
-    }, {});
+    }
 
-    // ✅ Chỉ giới hạn kết quả cuối cùng
-    return Object.values(groupedData);
+    return finalTracks;
   }
 }

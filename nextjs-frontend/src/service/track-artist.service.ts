@@ -9,11 +9,14 @@ import { ITrack } from "@/types/data";
 
 type MatchMode = "every" | "some";
 
-export const getTrackForArtist = async (_id: string) => {
+export const getTrackForArtist = async (_id: string, sortBy?: string) => {
   try {
     const res = await sendRequest<IBackendRes<ITrack[]>>({
       url: `${backendUrl}${api_track_artists.artist}${_id}`,
       method: "GET",
+      queryParams: {
+        sortBy: sortBy,
+      },
     });
 
     return res.data;

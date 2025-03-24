@@ -46,6 +46,7 @@ import {
   selectWaitTrackList,
 } from "@/lib/features/tracks/tracks.slice";
 import store from "@/lib/store";
+import Loading from "@/components/loading/loading";
 
 interface IProps {
   fatherRef: React.RefObject<HTMLDivElement | null>;
@@ -94,7 +95,9 @@ const Right = (props: IProps) => {
     fetchAllartistTypeGroups();
   }, []); // Chỉ chạy khi hover
 
-  if (!currentTrack || waitTrackList.length === 0) return <></>;
+  if (currentTrack && waitTrackList.length === 0) return <Loading />;
+
+  if (!currentTrack) return <></>;
 
   const sortedArtist = [...currentTrack.artists].sort((a, b) => {
     const groupA = a.artistTypeDetail.artistTypeGroup.name.toUpperCase();

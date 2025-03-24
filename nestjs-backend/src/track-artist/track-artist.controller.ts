@@ -63,8 +63,11 @@ export class TrackArtistsController {
   @Public()
   @Get('artist/:id')
   @ResponseMessage('Find by id')
-  findAllTrackByArtist(@Param('id') artistId: string) {
-    return this.TrackArtistService.findAllTrackByArtist(artistId);
+  findAllTrackByArtist(
+    @Param('id') artistId: string,
+    @Query('sortBy') sortBy?: string,
+  ) {
+    return this.TrackArtistService.findAllTrackByArtist(artistId, sortBy);
   }
 
   @Patch(':id')
