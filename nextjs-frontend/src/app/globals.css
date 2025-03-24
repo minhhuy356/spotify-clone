@@ -1,0 +1,33 @@
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+@import "tailwindcss";
+
+@theme {
+  --font-display: "Satoshi", "sans-serif";
+  --breakpoint-3xl: 1920px;
+  /* Các biến và cấu hình khác */
+  --color-base: rgb(20, 20, 20);
+  --color-30: rgb(30, 30, 30);
+  --color-40: rgb(40, 40, 40);
+  --color-hover-not-click: rgba(70, 70, 70, 0.5);
+  --color-hover: rgb(70, 70, 70);
+  --color-selected: rgb(90, 90, 90);
+  --color-tab: rgb(50, 50, 50);
+  --color-white-04: rgba(255, 255, 255, 0.4);
+  --color-white-05: rgba(255, 255, 255, 0.5);
+  --color-white-06: rgba(255, 255, 255, 0.6);
+  --color-input-border: rgba(0, 0, 0, 0.23);
+  --color-scroll: #dddddd;
+
+  --breakpoint-sm: 600px;
+  --breakpoint-md: 786px;
+  --breakpoint-lg: 992px;
+  --breakpoint-xl: 1200px;
+  --breakpoint-2xl: 1536px;
+  --breakpoint-3xl: 1800px;
+  --breakpoint-4xl: 2100px;
+}

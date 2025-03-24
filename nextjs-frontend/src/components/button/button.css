@@ -1,0 +1,107 @@
+.bneLcE {
+  fill: currentcolor;
+  width: 24px;
+  height: 24px;
+}
+
+.woJQ5t2YiaJhjTv_KE7p {
+  border-radius: 500px;
+
+  -webkit-box-shadow: 0 8px 8px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 8px 8px rgba(0, 0, 0, 0.3);
+  /* opacity: 0; */
+  pointer-events: none;
+
+  -webkit-transition: all 0.2sease-out;
+  transition: all 0.2sease-out;
+  z-index: 2;
+}
+.ix_8kg3iUb9VS5SmTnBY {
+  -ms-flex-negative: 0;
+  flex-shrink: 0;
+}
+.e-9541-button {
+  background-color: initial;
+  border: 0;
+  border-radius: var(--encore-border-radius-rounded);
+  cursor: pointer;
+  display: inline-block;
+  text-align: center;
+  -webkit-text-decoration: none;
+  text-decoration: none;
+  text-transform: none;
+  -ms-touch-action: manipulation;
+  touch-action: manipulation;
+  /* -webkit-transform: translateZ(0); */
+  transform: translateZ(0);
+  /* -webkit-transition-duration: 33ms; */
+  transition-duration: 33ms;
+  /* -webkit-transition-property: background-color, border-color, color,
+      -webkit-box-shadow, -webkit-filter, -webkit-transform;
+    transition-property: background-color, border-color, color, -webkit-box-shadow,
+      -webkit-filter, -webkit-transform;
+    transition-property: background-color, border-color, color, box-shadow, filter,
+      transform;
+    transition-property: background-color, border-color, color, box-shadow, filter,
+      transform, -webkit-box-shadow, -webkit-filter, -webkit-transform; */
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  vertical-align: middle;
+}
+.iPAIAO {
+  padding: 0px;
+  min-inline-size: 0px;
+  align-self: center;
+}
+.root {
+  --background-base: #1ed760;
+  --background-highlight: #3be477;
+  --background-press: #1abc54;
+  --background-elevated-base: #3be477;
+  --background-elevated-highlight: #3be477;
+  --background-elevated-press: #1abc54;
+  --background-tinted-base: #1ed760;
+  --background-tinted-highlight: #1ed760;
+  --background-tinted-press: #1ed760;
+  --text-base: #000;
+  --text-subdued: #000;
+  --text-bright-accent: #000;
+  --text-negative: #000;
+  --text-warning: #000;
+  --text-positive: #000;
+  --text-announcement: #000;
+  --essential-base: #000;
+  --essential-subdued: #000;
+  --essential-bright-accent: #000;
+  --essential-negative: #000;
+  --essential-warning: #000;
+  --essential-positive: #000;
+  --essential-announcement: #000;
+  --decorative-base: #000;
+  --decorative-subdued: #1abc54;
+}
+.e-9541-button-icon-only--medium {
+  block-size: var(--encore-control-size-base);
+  inline-size: var(--encore-control-size-base);
+}
+
+.TFilp {
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+  position: relative;
+  background-color: #1ed760;
+  color: var(--text-base, #000000);
+  display: flex;
+  border-radius: var(--encore-button-corner-radius, 9999px);
+  font-size: inherit;
+  -webkit-box-align: center;
+  align-items: center;
+  -webkit-box-pack: center;
+  justify-content: center;
+  transition-property: background-color, transform;
+  transition-duration: 33ms;
+  height: 48px;
+  width: 48px;
+}

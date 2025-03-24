@@ -1,0 +1,35 @@
+<html lang='en'>
+  <head>
+    <meta charset='UTF-8' />
+    <meta name='viewport' content='width=device-width, initial-scale=1.0' />
+    <title>Email Verification</title>
+
+  </head>
+  <body
+    style='font-family: Arial, sans-serif;background-color: #f4f4f4;margin: 0;padding: 5rem 0rem;'
+  >
+    <div
+      class='container'
+      style='max-width: 600px;margin: 20px auto;background: #ffffff;padding: 20px;border-radius: 8px;box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);'
+    >
+      <h2>Email Verification </h2>
+      <p>Hello, {{EMAIL}}</p>
+      <p>
+        Thank you for registered. Please verify your email address by clicking
+        the button below:
+      </p>
+      <p style='text-align: center'>
+        <a
+          href='{{VERIFY_LINK}}'
+          class='button'
+          style='display: inline-block;padding: 12px 20px;background-color: #007bff;color: #ffffff;text-decoration: none;border-radius: 5px;font-size: 16px;'
+        >Verify Email</a>
+      </p>
+      <p>If you did not create an account, you can ignore this email.</p>
+      <div
+        class='footer'
+        style='margin-top: 20px;font-size: 12px;color: #777;'
+      >&copy; 2025 Your Company. All rights reserved.</div>
+    </div>
+  </body>
+</html>

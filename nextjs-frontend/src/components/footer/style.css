@@ -1,0 +1,25 @@
+.rhap_volume-bar {
+  height: 6px; /* Chiều cao thanh */
+  background: #ccc; /* Màu nền cho phần không có âm lượng */
+  border-radius: 5px;
+  position: relative;
+}
+
+.rhap_volume-bar > div {
+  background: #000000; /* Màu sắc biểu thị âm lượng hiện tại */
+  transition: width 0.2s ease; /* Hiệu ứng mượt khi thay đổi */
+}
+
+.rhap_volume-indicator {
+  top: -4px;
+  background: #007bff; /* Tùy chỉnh màu chỉ báo */
+  border-radius: 50%; /* Bo tròn chỉ báo */
+  width: 14px; /* Kích thước chỉ báo */
+  height: 14px;
+  box-shadow: 0 0 5px rgba(0, 0, 0, 0.5); /* Hiệu ứng ánh sáng */
+  z-index: 100;
+}
+:where(.slider-thumb) {
+  width: 8px !important;
+  height: 8px !important;
+}
