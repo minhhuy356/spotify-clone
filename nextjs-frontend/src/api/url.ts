@@ -52,6 +52,7 @@ export const disk_tracks = {
   audios: `${url_disk_tracks}audios/`,
   videos: `${url_disk_tracks}videos/`,
 };
+
 export const url_disk_artists = "artists/";
 export const disk_artists = {
   profile: `${url_disk_artists}profile/`,
@@ -61,6 +62,11 @@ export const disk_artists = {
 };
 
 export const url_disk_preview = "preview/";
+
+export const url_disk_albums = "albums/";
+export const disk_albums = {
+  images: `${url_disk_albums}images/`,
+};
 
 export const url_api_auth = "api/v1/auth/";
 export const api_auth = {

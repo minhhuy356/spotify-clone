@@ -76,7 +76,6 @@ const WaitlistDrawer = (props: IProps) => {
     track: ITrack,
     event: React.MouseEvent
   ) => {
-    console.log(track);
     if (!track) return;
 
     const position = {

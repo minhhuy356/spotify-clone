@@ -67,7 +67,7 @@ export const fetchAllArtists = createAsyncThunk<IArtist[]>(
         url: `${backendUrl}${url_api_artists}`,
         method: "GET",
       });
-      console.log(response.data?.result);
+
       // Trả về dữ liệu người dùng nếu thành công
       if (response.data) {
         return response.data.result; // Trả về IUser

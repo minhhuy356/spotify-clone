@@ -218,53 +218,26 @@ const Upload = () => {
           />
         </div>
         <div className="flex gap-3">
-          {!artist.avatarImg && !artist.coverImg ? (
-            <>
-              <div className="flex-1">
-                <UploadFile
-                  reset={resetFileAvatar}
-                  title="Upload Avatar Image"
-                  type="avatar"
-                  accept="image"
-                  onChange={(file) => handleChange("avatarImg", file)}
-                  preview={true}
-                />
-              </div>
-              <div className="flex-1">
-                <UploadFile
-                  reset={resetFileCover}
-                  title="Upload Cover Image"
-                  accept="image"
-                  preview={true}
-                  type="cover"
-                  onChange={(file) => handleChange("coverImg", file)}
-                />
-              </div>
-            </>
-          ) : artist.avatarImg ? (
-            <div className="flex-1">
-              <UploadFile
-                reset={resetFileAvatar}
-                title="Upload Avatar Image"
-                type="avatar"
-                accept="image"
-                onChange={(file) => handleChange("avatarImg", file)}
-                preview={true}
-              />
-            </div>
-          ) : (
-            <div className="flex-1">
-              {" "}
-              <UploadFile
-                reset={resetFileCover}
-                title="Upload Cover Image"
-                accept="image"
-                preview={true}
-                type="cover"
-                onChange={(file) => handleChange("coverImg", file)}
-              />
-            </div>
-          )}
+          <div className="flex-1">
+            <UploadFile
+              reset={resetFileAvatar}
+              title="Upload Avatar Image"
+              type="avatar"
+              accept="image"
+              onChange={(file) => handleChange("avatarImg", file)}
+              preview={true}
+            />
+          </div>
+          <div className="flex-1">
+            <UploadFile
+              reset={resetFileCover}
+              title="Upload Cover Image"
+              accept="image"
+              preview={true}
+              type="cover"
+              onChange={(file) => handleChange("coverImg", file)}
+            />
+          </div>
         </div>
         <div className="flex justify-end " onClick={handleSubmit}>
           <Button status={status} setStatus={setStatus} title="Tạo mới" />

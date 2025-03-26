@@ -70,6 +70,13 @@ export class TrackArtistsController {
     return this.TrackArtistService.findAllTrackByArtist(artistId, sortBy);
   }
 
+  @Public()
+  @Get('album/:id')
+  @ResponseMessage('Find track by album')
+  findAllTrackByAlbum(@Param('id') albumId: string) {
+    return this.TrackArtistService.findAllTrackByAlbum(albumId);
+  }
+
   @Patch(':id')
   @ResponseMessage('Update by id')
   update(

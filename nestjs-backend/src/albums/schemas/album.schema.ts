@@ -1,3 +1,4 @@
+import { Artist } from '@/artists/schemas/artist.schema';
 import { Track } from '@/tracks/schemas/track.schemas';
 import { User } from '@/users/schemas/user.schema';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
@@ -10,14 +11,14 @@ export class Album {
   @Prop({ required: true })
   name: string;
 
-  @Prop({
-    type: mongoose.Schema.Types.ObjectId,
-    ref: User.name,
-  })
-  user: ObjectId;
-
   @Prop({ default: 0 })
   countLike: number;
+
+  @Prop({ required: true })
+  imgUrl: string;
+
+  @Prop({ type: mongoose.Schema.Types.ObjectId, ref: Artist.name })
+  releasedBy: ObjectId;
 
   @Prop({
     type: mongoose.Schema.Types.ObjectId,

@@ -52,7 +52,7 @@ const Button: React.FC<IButtonProps> = ({ title, status, setStatus }) => {
   };
 
   return (
-    <div className="relative">
+    <div className="relative cursor-pointer">
       <div
         className={`w-28 h-12 flex justify-center items-center rounded-md border cursor-pointer transition-all duration-500
         ${status.success ? "border-green-500 text-green-500 w-[13rem]" : ""}
@@ -65,7 +65,7 @@ const Button: React.FC<IButtonProps> = ({ title, status, setStatus }) => {
       `}
       >
         {status.error && (
-          <div className="flex gap-1">
+          <div className="flex gap-1 cursor-pointer">
             {" "}
             <motion.div
               animate={{
@@ -79,7 +79,9 @@ const Button: React.FC<IButtonProps> = ({ title, status, setStatus }) => {
             >
               <MdError size={24} />
             </motion.div>
-            <button className="line-clamp-1">Tạo mới thất bại</button>
+            <button className="line-clamp-1 cursor-pointer">
+              Tạo mới thất bại
+            </button>
           </div>
         )}
         {status.success && (
@@ -96,12 +98,14 @@ const Button: React.FC<IButtonProps> = ({ title, status, setStatus }) => {
             >
               <TiTickOutline size={24} />
             </motion.div>
-            <button className="line-clamp-1">Tạo mới thành công</button>
+            <button className="line-clamp-1 cursor-pointer">
+              Tạo mới thành công
+            </button>
           </div>
         )}
         {status.pending && <CircularProgress size={20} />}
         {!status.pending && !status.success && !status.error && (
-          <button className="line-clamp-1">{title}</button>
+          <button className="line-clamp-1 cursor-pointer">{title}</button>
         )}
 
         {/* Ngôi sao chỉ xuất hiện khi showStars === true */}

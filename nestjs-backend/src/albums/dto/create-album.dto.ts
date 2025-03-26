@@ -16,13 +16,13 @@ export class CreateAlbumsDto {
   @IsNotEmpty()
   name: string;
 
-  @IsArray()
-  @IsOptional()
-  track: ObjectId[];
+  @IsString()
+  @IsNotEmpty()
+  imgUrl: string;
 
   @IsObjectId()
   @IsOptional()
-  user: ObjectId;
+  releasedBy: ObjectId;
 
   @IsNumber()
   @IsOptional()

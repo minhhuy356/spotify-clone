@@ -28,6 +28,7 @@ const defaultPopulation = [
     path: 'track',
     populate: [{ path: 'genres' }, { path: 'releasedBy' }],
   },
+
   {
     path: 'artist',
   },
@@ -384,5 +385,40 @@ export class TrackArtistsService {
     }
 
     return finalTracks;
+  }
+
+  async findAllTrackByAlbum(albumId: string) {
+    // ✅ Truy vấn tất cả track-artist có track (populate track trước)
+    const rawData = await this.trackArtistModel
+      .find()
+      .populate(defaultPopulation)
+      .lean()
+      .exec();
+
+    // ✅ Lọc các track có album đúng với yêu cầu
+    const filteredData = rawData.filter((item) => {
+      return (item.track as any).album.toString() === albumId; // 🔥 Lọc theo album
+    });
+    console.log(filteredData);
+    // ✅ Gộp bài hát có cùng track._id
+    const groupedData = filteredData.reduce((acc, item) => {
+      const trackId = (item.track as any)._id.toString();
+
+      if (!acc[trackId]) {
+        acc[trackId] = {
+          ...item.track,
+          artists: [],
+        };
+      }
+      acc[trackId].artists.push({
+        artist: item.artist,
+        artistTypeDetail: item.artistTypeDetail,
+        useStageName: item.useStageName,
+      });
+      return acc;
+    }, {});
+
+    // ✅ Giới hạn kết quả
+    return Object.values(groupedData);
   }
 }

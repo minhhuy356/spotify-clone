@@ -19,6 +19,24 @@ import { UpdateUserActivitysDto } from './dto/update-user-activity.dto';
 import { TracksService } from '@/tracks/tracks.service';
 import { ArtistsService } from '@/artists/artists.service';
 import { AlbumsService } from '@/albums/Albums.service';
+import path from 'path';
+const populate = [
+  {
+    path: 'artists',
+  },
+  {
+    path: 'user',
+  },
+  {
+    path: 'albums',
+    populate: {
+      path: 'releasedBy', // Trường cụ thể trong albums cần populate
+    },
+  },
+  {
+    path: 'tracks',
+  },
+];
 
 @Injectable()
 export class UserActivitysService {
@@ -51,7 +69,7 @@ export class UserActivitysService {
     user: IUser,
   ) {
     const { quantity, track } = createUserActivityDto;
-
+    console.log(createUserActivityDto, user);
     //Check track existed or not
     await this.trackService.findById(createUserActivityDto.track.toString());
 
@@ -60,29 +78,31 @@ export class UserActivitysService {
 
     //Check user existed or not in UserActivity schema
     const existingUser = await this.UserActivityModel.findOne({
-      user: createUserActivityDto.user,
+      user: user._id,
     });
 
     if (existingUser) {
       // 🛠 Kiểm tra xem track đã có trong danh sách chưa
       const trackExists = await this.UserActivityModel.findOne({
-        user: createUserActivityDto.user,
+        user: user._id,
         tracks: track, // Kiểm tra track đã tồn tại trong mảng `tracks`
       });
 
       if (!trackExists && quantity === 1) {
         // Nếu track chưa có và quantity = 1, thêm vào
         const result = await this.UserActivityModel.updateOne(
-          { user: createUserActivityDto.user },
-          { $push: { tracks: track }, updatedBy: user._id },
+          { user: user._id },
+          { $push: { tracks: track }, updatedBy: user._id, user: user._id },
         );
+        console.log(1);
         return result;
       } else if (trackExists && quantity === -1) {
         // Nếu track có và quantity = -1, Xóa !
         const result = await this.UserActivityModel.updateOne(
-          { user: createUserActivityDto.user },
-          { $pull: { tracks: track }, updatedBy: user._id },
+          { user: user._id },
+          { $pull: { tracks: track }, updatedBy: user._id, user: user._id },
         );
+        console.log(-1);
         return result;
       }
     } else {
@@ -114,20 +134,20 @@ export class UserActivitysService {
     if (existingUser) {
       // 🛠 Kiểm tra xem artist đã có trong danh sách chưa
       const trackExists = await this.UserActivityModel.findOne({
-        user: createUserActivityDto.user,
+        user: user._id,
         artists: artist, // Kiểm tra artist đã tồn tại trong mảng `artists`
       });
 
       if (!trackExists && quantity === 1) {
         // Nếu artist chưa có và quantity = 1, thêm vào
         const result = await this.UserActivityModel.updateOne(
-          { user: createUserActivityDto.user },
+          { user: user._id },
           { $push: { artists: artist }, updatedBy: user._id },
         );
       } else if (trackExists && quantity === -1) {
         // Nếu artist có và quantity = -1, Xóa !
         const result = await this.UserActivityModel.updateOne(
-          { user: createUserActivityDto.user },
+          { user: user._id },
           { $pull: { artists: artist }, updatedBy: user._id },
         );
       }
@@ -144,44 +164,44 @@ export class UserActivitysService {
     createUserActivityDto: CreateUserActivitysDto,
     user: IUser,
   ) {
-    const { quantity, albums } = createUserActivityDto;
+    const { quantity, album } = createUserActivityDto;
 
     //Check artist existed or not
-    await this.albumservice.findById(createUserActivityDto.albums.toString());
+    await this.albumservice.findById(createUserActivityDto.album.toString());
 
     //Update count UserActivity for artist
-    await this.albumservice.updateCountLike(albums.toString(), quantity, user);
+    await this.albumservice.updateCountLike(album.toString(), quantity, user);
 
     //Check user existed or not in UserActivity schema
     const existingUser = await this.UserActivityModel.findOne({
-      user: createUserActivityDto.user,
+      user: user._id,
     });
 
     if (existingUser) {
       // 🛠 Kiểm tra xem artist đã có trong danh sách chưa
       const trackExists = await this.UserActivityModel.findOne({
-        user: createUserActivityDto.user,
-        albums: albums, // Kiểm tra artist đã tồn tại trong mảng `artists`
+        user: user._id,
+        albums: album, // Kiểm tra artist đã tồn tại trong mảng `artists`
       });
 
       if (!trackExists && quantity === 1) {
         // Nếu artist chưa có và quantity = 1, thêm vào
         const result = await this.UserActivityModel.updateOne(
-          { user: createUserActivityDto.user },
-          { $push: { albums: albums }, updatedBy: user._id },
+          { user: user._id },
+          { $push: { albums: album }, updatedBy: user._id },
         );
         return result;
       } else if (trackExists && quantity === -1) {
         // Nếu artist có và quantity = -1, Xóa !
         const result = await this.UserActivityModel.updateOne(
-          { user: createUserActivityDto.user },
-          { $pull: { albums: albums }, updatedBy: user._id },
+          { user: user._id },
+          { $pull: { albums: album }, updatedBy: user._id },
         );
         return result;
       }
     } else {
       const result = await this.UserActivityModel.create({
-        albums: [albums],
+        albums: [album],
         user: user._id,
       });
       return result;
@@ -245,23 +265,11 @@ export class UserActivitysService {
     const totalItems = (await this.UserActivityModel.find(filter)).length;
     const totalPages = Math.ceil(totalItems / defaultpageSize);
 
-    const defaultPopulation = [
-      {
-        path: 'tracks',
-      },
-      {
-        path: 'user',
-      },
-      {
-        path: 'albums',
-      },
-    ];
-
     const data = await this.UserActivityModel.find({ user: user._id })
       .skip(offset)
       .limit(defaultpageSize)
       .sort(sort as any)
-      .populate(defaultPopulation)
+      .populate(populate)
       .select(projection as any)
       .exec();
 
@@ -277,17 +285,9 @@ export class UserActivitysService {
   }
 
   async findById(id: string) {
-    const result = await this.UserActivityModel.findOne({ user: id }).populate([
-      {
-        path: 'artists',
-      },
-      {
-        path: 'user',
-      },
-      {
-        path: 'albums',
-      },
-    ]);
+    const result = await this.UserActivityModel.findOne({
+      user: id,
+    }).populate(populate);
 
     if (!result) {
       throw new HttpException('UserActivity not found', HttpStatus.NOT_FOUND);

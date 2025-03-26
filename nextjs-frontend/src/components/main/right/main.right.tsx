@@ -52,7 +52,7 @@ interface IProps {
   fatherRef: React.RefObject<HTMLDivElement | null>;
   rightWidth: number;
 }
-interface GroupedArtist {
+export interface GroupedArtist {
   artist: IArtist;
   useStageName: boolean;
   artistTypeDetails: IArtistTypeDetail[];

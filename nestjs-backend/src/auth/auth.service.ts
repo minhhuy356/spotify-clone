@@ -15,12 +15,14 @@ import { Algorithm } from 'jsonwebtoken';
 import { Response } from 'express';
 import { UserActivitysService } from '@/user_activity/user-activity.service';
 import * as jwt from 'jsonwebtoken';
+import { TrackArtistsService } from '@/track-artist/track-artist.service';
 
 @Injectable()
 export class AuthService {
   constructor(
     private usersService: UsersService,
     private userActivityService: UserActivitysService,
+    private trackArtistService: TrackArtistsService,
     private jwtService: JwtService,
     private configService: ConfigService,
   ) {}
@@ -72,6 +74,16 @@ export class AuthService {
 
     const { tracks, artists, albums } = userActivity;
 
+    const tracksWithArtist = (
+      await Promise.all(
+        tracks.map(
+          async (item: any) => await this.trackArtistService.findById(item),
+        ),
+      )
+    ).flat();
+
+    console.log(tracksWithArtist);
+
     return {
       access_token: await this.jwtService.signAsync(payload),
       refresh_token: refresh_token,
@@ -79,7 +91,7 @@ export class AuthService {
         _id,
         email,
         roles,
-        tracks,
+        tracks: tracksWithArtist,
         artists,
         albums,
       },

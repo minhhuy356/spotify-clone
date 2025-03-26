@@ -168,7 +168,7 @@ const Slider = (props: IProps) => {
       })
     );
     dispatch(setType("local"));
-    console.log(track);
+
   };
 
   const playTrack = (track: ITrack) => {

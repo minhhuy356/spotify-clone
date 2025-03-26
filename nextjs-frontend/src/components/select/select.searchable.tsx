@@ -36,7 +36,6 @@ const SelectSearchable: React.FC<IProp> = ({
         onChange?.([...value, option]); // ✅ Thêm option vào danh sách đã chọn
       }
     }
-    // console.log([...value, { index, ...option }]);
 
     setSearchTerm("");
     setIsFocused(false);

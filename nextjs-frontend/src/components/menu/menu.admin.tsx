@@ -112,8 +112,6 @@ const Menu: React.FC<MenuProps> = ({ items = [] }) => {
                           index + 1 === menuItem.children?.length ? "mb-1" : ""
                         }`}
                         onClick={() => {
-                          console.log("Clicked:", subItem.key);
-
                           setSelectedKey({
                             parent: menuItem.key,
                             child: subItem.key,

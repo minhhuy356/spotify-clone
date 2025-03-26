@@ -29,6 +29,7 @@ export const uploadArtist = async (
         realName: artist.realName,
         date: artist.date,
         description: artist.description,
+        country: artist.country,
         avatarImgUrl: artist.avatarImg?.name,
         coverImgUrl: artist.coverImg?.name,
         profileImgUrl: artist.profileImg?.name,
@@ -50,7 +51,7 @@ export const getChooseByArtist = async (_id: string) => {
       url: `${backendUrl}${api_artists.choose}${_id}`,
       method: "GET",
     });
-    console.log(res);
+
     return res.data;
   } catch (error) {
     throw new Error("Lỗi khi lấy danh sách bài hát của nghệ sĩ");

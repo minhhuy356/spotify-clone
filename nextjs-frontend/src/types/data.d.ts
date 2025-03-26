@@ -20,6 +20,8 @@ export interface ITrack {
   createdAt: string;
   updatedAt: string;
   duration: number;
+  order: number;
+  album: IAlbum;
 }
 
 export interface IMonthlyListener {
@@ -84,10 +86,10 @@ export interface IAuth {
 }
 
 export interface IAlbum {
-  title: string;
-  track: ITrack[];
-  user: IUser;
-
+  _id: string;
+  name: string;
+  imgUrl: string;
+  releasedBy: IArtist;
   countLike: number;
 }
 

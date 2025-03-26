@@ -20,10 +20,11 @@ export class CreateUserActivitysDto {
 
   @IsMongoId()
   @IsOptional()
-  albums?: mongoose.Schema.Types.ObjectId;
+  album?: mongoose.Schema.Types.ObjectId;
 
+  @IsOptional()
   @IsMongoId()
-  user: mongoose.Schema.Types.ObjectId | string;
+  user?: mongoose.Schema.Types.ObjectId;
 
   @IsNumber()
   @IsOptional()

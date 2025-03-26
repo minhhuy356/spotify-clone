@@ -556,6 +556,7 @@ const Upload = () => {
                   onClick={() => handleSubmit()}
                 >
                   <Button
+                    className="cursor-pointe"
                     status={status}
                     setStatus={setStatus}
                     title="Tạo mới"

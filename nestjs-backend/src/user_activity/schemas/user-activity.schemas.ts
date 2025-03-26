@@ -33,8 +33,9 @@ export class UserActivity {
 
   @Prop({
     type: mongoose.Schema.Types.ObjectId,
-    required: true,
+
     ref: User.name,
+    default: '',
   })
   user: ObjectId;
 

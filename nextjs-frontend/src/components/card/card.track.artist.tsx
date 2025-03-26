@@ -71,7 +71,6 @@ const CardTrackArtist = (props: IProps) => {
     );
     dispatch(setType("drawer"));
   };
-  console.log(currentTrack);
 
   const audio = new Audio(
     `${backendUrl}${disk_tracks.audios}${track.audioUrl}`

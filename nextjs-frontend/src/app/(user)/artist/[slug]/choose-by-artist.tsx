@@ -18,12 +18,8 @@ const ChooseByArtist = ({ chooseByArtist }: IProps) => {
           className="w-full h-full rounded "
         />
         {/* Overlay Tối & Mờ */}
-        <div
-          className="absolute top-0 bottom-0 right-0 left-0"
-          style={{
-            background: `linear-gradient(to top, black 0%, transparent 100%)`,
-          }}
-        ></div>
+        <div className="absolute inset-0 bg-gradient-to-t from-black to-transparent"></div>
+
         <div className="absolute z-[100] bottom-4 right-4 top-4 left-4 flex flex-col justify-between ">
           <div className="flex gap-2  bg-white text-black rounded-full  p-1">
             <img

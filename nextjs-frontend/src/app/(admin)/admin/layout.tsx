@@ -141,19 +141,17 @@ export default function RootLayout({
 
             {/* Center */}
             <div
-              className="rounded-lg bg-base min-h-0 overflow-hidden "
+              className="rounded-lg bg-base min-h-0 overflow-auto"
               ref={centerRef}
             >
               {" "}
-              <ScrollBar fatherRef={centerRef}>
-                <div
-                  className={`flex justify-center  w-full ${
-                    screenWidth < 1200 ? " h-auto" : "h-full"
-                  } text-white p-4 `}
-                >
-                  {children}
-                </div>
-              </ScrollBar>
+              <div
+                className={`flex justify-center  w-full ${
+                  screenWidth < 1200 ? " h-auto" : "h-full"
+                } text-white p-4 `}
+              >
+                {children}
+              </div>
             </div>
 
             {/* Thanh kéo giữa Center & Right */}

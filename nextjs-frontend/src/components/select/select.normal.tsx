@@ -18,7 +18,6 @@ const SelectNormal: React.FC<IProp> = ({ title, data, value, onChange }) => {
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   const handleSelect = (option: OptionType) => {
-    console.log(option);
     onChange?.(option); // ✅ Only use onChange, no need to update state
     setIsOpen(false);
   };

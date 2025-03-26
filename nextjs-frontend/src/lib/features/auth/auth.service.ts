@@ -14,7 +14,6 @@ export const loginService = async (username: string, password: string) => {
       }
     );
     if (response) {
-      console.log(response);
       // delete response.data.refresh_token;
       const res = await response.json();
       return res.data;
@@ -76,7 +75,7 @@ export const getRefreshToken = async (access_token: string) => {
         Authorization: `Bearer ${access_token}`,
       },
     });
-    console.log(response);
+
     if (response) {
       const res = await response.json();
 

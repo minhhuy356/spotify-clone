@@ -101,7 +101,7 @@ const ContextMenuTrack = () => {
           temporaryTrack,
           indexCurrentTrack + 1
         );
-        console.log(updatedList);
+
         dispatch(
           play({ waitTrackList: updatedList, currentTrack: temporaryTrack })
         );

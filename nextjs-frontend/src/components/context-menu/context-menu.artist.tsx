@@ -158,7 +158,7 @@ const ContextMenuArtist = ({}: IHTMLProps) => {
     // **Lấy lại session mới từ Redux rồi lưu vào localStorage**
     setTimeout(() => {
       const newSession = JSON.stringify(store.getState().auth.session); // 🔹 Lấy lại session mới từ Redux
-      console.log(newArtists);
+
       localStorage.setItem("session", newSession);
     }, 100);
   };

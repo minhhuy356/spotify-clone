@@ -11,7 +11,6 @@ const ButtonDotArtist = ({ artist }: IButtonProps) => {
 
   const handleOpenContextMenuArtist = (event: React.MouseEvent) => {
     if (!artist) return;
-    console.log(artist);
 
     const position = {
       x: event.clientX,

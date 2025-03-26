@@ -11,7 +11,6 @@ const ButtonDotTrack = ({ track }: IButtonProps) => {
 
   const handleOpenContextMenuTrack = (event: React.MouseEvent) => {
     if (!track) return;
-    console.log(track);
 
     const position = {
       x: event.clientX,

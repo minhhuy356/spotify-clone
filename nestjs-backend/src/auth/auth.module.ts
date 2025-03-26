@@ -12,9 +12,11 @@ import { AuthController } from './auth.controller';
 import { UsersModule } from '@/users/users.module';
 import { Algorithm } from 'jsonwebtoken';
 import { UserActivitysModule } from '@/user_activity/user-activity.module';
+import { TrackArtistsModule } from '@/track-artist/track-artist.module';
 
 @Module({
   imports: [
+    TrackArtistsModule,
     UsersModule,
     PassportModule,
     UserActivitysModule,

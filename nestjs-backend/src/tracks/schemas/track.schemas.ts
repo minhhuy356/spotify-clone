@@ -48,6 +48,7 @@ export class Track {
   @Prop({
     type: mongoose.Schema.Types.ObjectId,
     ref: Album.name,
+    default: '',
   })
   album: ObjectId;
 

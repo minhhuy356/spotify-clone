@@ -2,7 +2,7 @@
 
 import AppFooter from "@/components/footer/app.footer";
 import AppHeader from "@/components/header/app.header";
-import Left from "@/components/main/main.left";
+import Left from "@/components/main/left/left.main";
 import Right from "@/components/main/right/main.right";
 import ScrollBar from "@/components/scroll/scroll";
 import { ITrack } from "@/types/data";

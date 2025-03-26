@@ -83,12 +83,10 @@ const MainArtist = ({
         if (dominantSwatch) {
           setCoverColor(dominantSwatch.hex);
         } else {
-          console.log("Không tìm thấy màu chiếm ưu thế.");
         }
 
         if (brightestSwatch) {
           setAvatarColor(brightestSwatch.hex);
-          console.log("Màu sáng nhất:", brightestSwatch.hex);
         }
       })
       .catch((error) => console.error("Error extracting color:", error));
