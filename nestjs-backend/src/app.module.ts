@@ -25,6 +25,8 @@ import { AlbumsModule } from './albums/albums.module';
 import { TrackPlaysModule } from './track-plays/track-plays.module';
 import { MonthlyListenersModule } from './monthly-listeners/monthly-listeners.module';
 import { ChooseByArtistsModule } from './choose-by-artist/choose-by-artist.module';
+import { FolderUserModule } from './folder-user/folder-user.module';
+import { PlaylistUserModule } from './playlist-user/playlist-user.module';
 
 @Module({
   imports: [
@@ -63,6 +65,8 @@ import { ChooseByArtistsModule } from './choose-by-artist/choose-by-artist.modul
     TrackPlaysModule,
     MonthlyListenersModule,
     ChooseByArtistsModule,
+    FolderUserModule,
+    PlaylistUserModule,
   ],
   controllers: [AppController],
   providers: [AppService],

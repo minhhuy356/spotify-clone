@@ -82,8 +82,6 @@ export class AuthService {
       )
     ).flat();
 
-    console.log(tracksWithArtist);
-
     return {
       access_token: await this.jwtService.signAsync(payload),
       refresh_token: refresh_token,

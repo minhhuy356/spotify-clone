@@ -1,10 +1,7 @@
 import { backendUrl, disk_tracks } from "@/api/url";
 import ScrollBar from "@/components/scroll/scroll";
 import { artist_type_group } from "@/contants/artist.type";
-import {
-  setOpenContextMenuTrack,
-  setType,
-} from "@/lib/features/local/local.slice";
+import { setOpenContextMenuTrack } from "@/lib/features/local/local.slice";
 import {
   pause,
   play,
@@ -43,7 +40,14 @@ const Waitlist = (props: IProps) => {
         clone.push(track);
       }
       dispatch(pause());
-      dispatch(play({ waitTrackList: clone, currentTrack: track }));
+      dispatch(
+        play({
+          waitTrackList: clone,
+          currentTrack: track,
+          isInWaitlist: true,
+          playingSource: "track",
+        })
+      );
     }
     if (isPlay && currentTrack === track) {
       dispatch(pause());
@@ -72,7 +76,6 @@ const Waitlist = (props: IProps) => {
         position,
       })
     );
-    dispatch(setType("drawer"));
   };
 
   const track = currentTrack;

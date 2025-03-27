@@ -125,6 +125,7 @@ const AudioPlayer: React.FC<IAudioPlayerProps> = ({
           play({
             waitTrackList: [currentTrack, ...dataFilter],
             currentTrack: currentTrack,
+            isInWaitlist: false,
           })
         );
       }
@@ -164,7 +165,13 @@ const AudioPlayer: React.FC<IAudioPlayerProps> = ({
       audio
         .play()
         .then(() =>
-          dispatch(play({ waitTrackList: clone, currentTrack: currentTrack }))
+          dispatch(
+            play({
+              waitTrackList: clone,
+              currentTrack: currentTrack,
+              isInWaitlist: false,
+            })
+          )
         )
         .catch((error: any) => console.error("Playback failed:", error));
     } else {

@@ -9,7 +9,6 @@ import {
   selectIsOpenContextMenuTrack,
   selectPosition,
   selectTemporaryTrack,
-  selectType,
   setOpenContextMenuTrack,
   setPosition,
 } from "@/lib/features/local/local.slice";
@@ -20,20 +19,24 @@ import {
   selectWaitTrackList,
   setWaitTrackList,
 } from "@/lib/features/tracks/tracks.slice";
-
 import { TbPlaylistAdd } from "react-icons/tb";
-import { CgPlayTrackNextO } from "react-icons/cg";
-
 import { MdDeleteOutline } from "react-icons/md";
 import { useAppDispatch, useAppSelector } from "@/lib/hook";
+import { IoAddOutline, IoShareOutline } from "react-icons/io5";
+import { IoIosAddCircleOutline, IoIosRadio } from "react-icons/io";
+import { GoPeople } from "react-icons/go";
+import { LuListMusic } from "react-icons/lu";
+import { selectSession } from "@/lib/features/auth/auth.slice";
+import { TiTick } from "react-icons/ti";
 
 const ContextMenuTrack = () => {
+  const session = useAppSelector(selectSession);
   const isPlay = useAppSelector(selectIsPlay);
   const isOpenContextMenuTrack = useAppSelector(selectIsOpenContextMenuTrack);
   const temporaryTrack = useAppSelector(selectTemporaryTrack);
   const waitTrackList = useAppSelector(selectWaitTrackList);
   const currentTrack = useAppSelector(selectCurrentTrack);
-  const type = useAppSelector(selectType);
+
   const position = useAppSelector(selectPosition);
   const dispatch = useAppDispatch();
   const menuRef = useRef<HTMLDivElement | null>(null);
@@ -103,7 +106,12 @@ const ContextMenuTrack = () => {
         );
 
         dispatch(
-          play({ waitTrackList: updatedList, currentTrack: temporaryTrack })
+          play({
+            waitTrackList: updatedList,
+            currentTrack: temporaryTrack,
+            isInWaitlist: false,
+            playingSource: "track",
+          })
         );
         handleCloseTab();
       }
@@ -179,6 +187,10 @@ const ContextMenuTrack = () => {
     }
   }, [isOpenContextMenuTrack]);
 
+  const isLikeTrack = session?.user.tracks.some(
+    (item) => item._id === temporaryTrack?._id
+  );
+
   if (!isOpenContextMenuTrack) return null; // Ẩn menu nếu không mở
 
   return (
@@ -189,101 +201,76 @@ const ContextMenuTrack = () => {
         top: position?.y || 0,
         left: position?.x || 0,
       }}
-      className=" bg-tab text-white shadow-lg rounded-lg z-[10000]"
+      className="bg-40 text-white shadow-lg rounded z-[10000] min-w-[300px] overflow-hidden p-1"
     >
-      <div className="flex flex-col bg-tab text-white">
-        {/* <div className="flex gap-3 pt-3 px-4">
-          <div className="size-10 ">
-            {track && (
-              <img
-                className="rounded-md "
-                src={`${backendUrl}${disk_tracks.images}${track?.imgUrl}`}
-                alt=""
-              />
-            )}
-          </div>
-
-          <div className="flex flex-col ">
-            <div className="  max-w-[180px] overflow-hidden text-nowrap text-ellipsis">
-              <span className="w-full cursor-pointer">{track?.title}</span>
-            </div>
-            <div className="opacity-60 flex gap-2">
-              <div className="flex gap-1">
-                <div className="flex items-center">
-                  <CiHeart />
-                </div>
-                <div>100k</div>
-              </div>
-              <div className="flex gap-1">
-                <div className="flex items-center">
-                  <GiHeadphones />
-                </div>
-                <div>10M</div>
-              </div>
-            </div>
-          </div>
-        </div> */}
-
-        {/* <div className="flex gap-3 opacity-90   hover:opacity-100 hover:bg-hover  cursor-pointer py-3 px-5">
-          <div>
-            <CiHeart />
-          </div>
-          <div>Thêm vào thư viện</div>
-        </div> */}
-        <div
-          className="flex gap-3 opacity-90   hover:opacity-100 hover:bg-hover  cursor-pointer py-3 px-5"
-          onClick={() => handleAddWaitTrackList()}
-        >
-          <div className="flex items-center">
-            <TbPlaylistAdd />
+      <div className="flex flex-col bg-40 text-white">
+        <div className="flex gap-3 opacity-90   hover:opacity-100 hover:bg-hover  cursor-pointer py-3 px-4">
+          <div className="flex items-center text-white-06">
+            <IoAddOutline size={20} />
           </div>
           <div>Thêm vào danh sách phát</div>
         </div>
-        <div
-          className="flex gap-3 opacity-90   hover:opacity-100 hover:bg-hover  cursor-pointer py-3 px-5"
-          onClick={() => handleAddTrackNext()}
-        >
-          <div className="flex items-center">
-            <CgPlayTrackNextO />
-          </div>
-          <div>Phát tiếp theo</div>
-        </div>
-        {/* <div className="flex gap-3 opacity-90   hover:opacity-100 hover:bg-hover  cursor-pointer py-3 px-5">
-          <div className="flex items-center">
-            <IoIosRadio />
-          </div>
-          <div>Phát nội dung tương tự</div>
-        </div>
-        <div className="flex gap-3 opacity-90   hover:opacity-100 hover:bg-hover  cursor-pointer py-3 px-5">
-          <div className="flex items-center">
-            <IoIosAddCircleOutline />
-          </div>
-          <div>Thêm vào playlist</div>
-        </div>
-        <div className="flex gap-3 opacity-90   hover:opacity-100 hover:bg-hover  cursor-pointer py-3 px-5">
-          <div className="flex items-center">
-            <IoIosLink />
-          </div>
-          <div>Sao chép link</div>
-        </div>
-        <div className="flex gap-3 opacity-90   hover:opacity-100 hover:bg-hover  cursor-pointer py-3 px-5">
-          <div className="flex items-center">
-            <RiShareForwardLine />
-          </div>
-          <div>Chia sẽ</div>
-        </div> */}
-        {type === "drawer" && (
-          <div
-            className="flex gap-3 opacity-90 hover:opacity-100 hover:bg-hover  cursor-pointer py-3 px-5 border-t-[1px] border-tab border-solid"
-            onClick={handleDeleteTrack}
-          >
-            <div className="flex items-center">
-              <MdDeleteOutline />
+        {isLikeTrack ? (
+          <div className="flex gap-3 opacity-90   hover:opacity-100 hover:bg-hover  cursor-pointer py-3 px-4 items-center">
+            <div className="flex items-center bg-green-500 size-[20px] rounded-full relative">
+              <TiTick
+                size={15}
+                className="text-40 absolute top-[52%] left-1/2 -translate-1/2"
+              />
             </div>
-            <div>Xóa</div>
+            <div className="">Xóa khỏi bài hát đã thích của bạn</div>
+          </div>
+        ) : (
+          <div className="flex gap-3 opacity-90   hover:opacity-100 hover:bg-hover  cursor-pointer py-3 px-4">
+            <div className="flex items-center text-white-06 ">
+              <IoIosAddCircleOutline size={20} />
+            </div>
+            <div>Lưu vào Bài hát đã thích của bạn</div>
           </div>
         )}
-      </div>
+        <div
+          className="flex gap-3 opacity-90   hover:opacity-100 hover:bg-hover  cursor-pointer py-3 px-4 "
+          onClick={() => handleAddWaitTrackList()}
+        >
+          <div className="flex items-center text-white-06">
+            <TbPlaylistAdd size={20} />
+          </div>
+          <div>Thêm vào danh sách chờ</div>
+        </div>
+        <div className="flex gap-3 opacity-90   hover:opacity-100 hover:bg-hover  cursor-pointer py-3 px-4 border-t-[1px] border-70 border-solid">
+          <div className="flex items-center text-white-06">
+            <IoIosRadio size={20} />
+          </div>
+          <div>Chuyển đến radio theo bài hát</div>
+        </div>
+        <div className="flex gap-3 opacity-90   hover:opacity-100 hover:bg-hover  cursor-pointer py-3 px-4 ">
+          <div className="flex items-center text-white-06">
+            <GoPeople size={20} />
+          </div>
+          <div>Chuyển tới nghệ sĩ</div>
+        </div>{" "}
+        <div className="flex gap-3 opacity-90   hover:opacity-100 hover:bg-hover  cursor-pointer py-3 px-4 ">
+          <div className="flex items-center text-white-06">
+            <LuListMusic size={20} />
+          </div>
+          <div>Xem thông tin ghi công</div>
+        </div>
+        <div className="flex gap-3 opacity-90   hover:opacity-100 hover:bg-hover  cursor-pointer py-3 px-4 border-t-[1px] border-70 border-solid ">
+          <div className="flex items-center text-white-06">
+            <IoShareOutline size={20} />
+          </div>
+          <div>Chia sẽ</div>
+        </div>
+        <div
+          className="flex gap-3 opacity-90 hover:opacity-100 hover:bg-hover  cursor-pointer py-3 px-4 border-t-[1px] border-70 border-solid"
+          onClick={handleDeleteTrack}
+        >
+          <div className="flex items-center text-white-06">
+            <MdDeleteOutline />
+          </div>
+          <div>Xóa</div>
+        </div>{" "}
+      </div>{" "}
     </div>
   );
 };

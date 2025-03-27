@@ -2,10 +2,7 @@ import { backendUrl, disk_tracks } from "@/api/url";
 import ScrollBar from "@/components/scroll/scroll";
 import { artist_type_group } from "@/contants/artist.type";
 import { findIndexById } from "@/helper/context-menu/context-menu.track";
-import {
-  setOpenContextMenuTrack,
-  setType,
-} from "@/lib/features/local/local.slice";
+import { setOpenContextMenuTrack } from "@/lib/features/local/local.slice";
 import {
   pause,
   play,
@@ -16,7 +13,6 @@ import {
   setIsInWaitlist,
 } from "@/lib/features/tracks/tracks.slice";
 import { useAppSelector } from "@/lib/hook";
-import { artist_service } from "@/service/artist.service";
 
 import { IArtist, ITrack } from "@/types/data";
 import Link from "next/link";
@@ -58,7 +54,12 @@ const WaitlistDrawer = (props: IProps) => {
       if (!isPlay || currentTrack !== track) {
         dispatch(pause());
         dispatch(
-          play({ waitTrackList: [...waitTrackList], currentTrack: track })
+          play({
+            waitTrackList: [...waitTrackList],
+            currentTrack: track,
+            isInWaitlist: true,
+            playingSource: "track",
+          })
         );
       }
       if (isPlay && currentTrack === track) {
@@ -69,7 +70,6 @@ const WaitlistDrawer = (props: IProps) => {
 
   const handlePlayTrack = (data: ITrack) => {
     playTrack(data);
-    dispatch(setIsInWaitlist(true));
   };
 
   const handleOpenContextMenuTrack = (
@@ -90,7 +90,6 @@ const WaitlistDrawer = (props: IProps) => {
         position,
       })
     );
-    dispatch(setType("drawer"));
   };
 
   if (!waitTrackList) return <></>;
@@ -153,7 +152,10 @@ const WaitlistDrawer = (props: IProps) => {
                   const isPreviousTrack = index < indexcurrentTrack;
 
                   return (
-                    <div className="flex flex-col">
+                    <div
+                      className="flex flex-col"
+                      key={`${track._id}-waitlist`}
+                    >
                       {track === currentTrack && (
                         <div className="mb-1 px-2 font-semibold ">
                           Đang phát

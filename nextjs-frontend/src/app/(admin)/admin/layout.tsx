@@ -54,7 +54,6 @@ export default function RootLayout({
       const screenWidth = window.innerWidth;
 
       if (screenWidth < 900) {
-        console.log(screenWidth - leftWidth - hardCenterWidth);
         const space = screenWidth - leftWidth - hardCenterWidth;
         if (space > 0) {
           setCenterWidth(
@@ -73,10 +72,6 @@ export default function RootLayout({
 
     return () => window.removeEventListener("resize", updateWidth);
   }, []);
-
-  React.useEffect(() => {
-    console.log(centerRef);
-  }, [centerRef]);
 
   return (
     <LocalizationProvider dateAdapter={AdapterDayjs}>

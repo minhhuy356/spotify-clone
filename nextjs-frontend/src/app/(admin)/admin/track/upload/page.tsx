@@ -136,7 +136,6 @@ const Upload = () => {
       ...prev,
       artists: selectedArtists,
     }));
-    console.log(selectedArtists);
   };
 
   React.useEffect(() => {
@@ -224,7 +223,6 @@ const Upload = () => {
 
     setValueArtists([]);
     setSelectedArtists([]);
-    console.log(info);
 
     const res = await track_artist_service.uploadTrack(
       info,

@@ -4,7 +4,7 @@ import { ITrack } from "@/types/data";
 import { useRouter } from "next/navigation";
 import { FaPlay } from "react-icons/fa";
 import ScrollBar from "../../scroll/scroll";
-import { forwardRef, useRef } from "react";
+import { forwardRef, useRef, useState } from "react";
 import { FaPause } from "react-icons/fa6";
 import Link from "next/link";
 import { artist_type_group } from "@/contants/artist.type";
@@ -23,14 +23,26 @@ interface IProps {
   hardLeftWidth: number;
 }
 
+export type ChooseLibraryBy = "album" | "all" | "artist";
+
 const Left = ({ leftWidth, hardLeftWidth }: IProps) => {
   const headerRef = useRef<HTMLDivElement>(null);
+  const [chooseLibraryBy, setChooseLibraryBy] =
+    useState<ChooseLibraryBy>("all");
   return (
     <div className="px-1 flex flex-col ">
       {/* Thư viện luôn ở trên */}
-      <LeftHeader headerRef={headerRef} leftWidth={leftWidth} />
+      <LeftHeader
+        headerRef={headerRef}
+        leftWidth={leftWidth}
+        chooseLibraryBy={chooseLibraryBy}
+        setChooseLibraryBy={setChooseLibraryBy}
+      />
       {/* Danh sách bài hát */}
-      <ListLibrary />
+      <ListLibrary
+        chooseLibraryBy={chooseLibraryBy}
+        setChooseLibraryBy={setChooseLibraryBy}
+      />
     </div>
   );
 };

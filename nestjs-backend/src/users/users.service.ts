@@ -212,7 +212,6 @@ export class UsersService {
   }
 
   updateUserToken = async (refresh_token: string, id: string) => {
-    console.log(refresh_token, id);
     return await this.userModel.updateOne(
       { _id: id },
       { refresh_token: refresh_token },

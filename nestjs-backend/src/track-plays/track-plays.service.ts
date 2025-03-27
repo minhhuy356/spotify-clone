@@ -55,8 +55,6 @@ export class TrackPlaysService {
       },
     ]);
 
-    console.log(listeners);
-
     return listeners;
   }
 }

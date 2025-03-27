@@ -4,6 +4,7 @@ import { createSlice } from "@reduxjs/toolkit";
 import type { PayloadAction } from "@reduxjs/toolkit";
 
 type Where = "track" | "artist" | "album";
+type PlayingSource = "track" | "artist" | "album" | null;
 
 interface IWhere {
   where: Where | null;
@@ -20,6 +21,8 @@ interface ItracksState {
   waitTrackList: ITrack[];
   isOpenWaitTrackList: boolean;
   currentTrack: ITrack | null;
+
+  playingSource: PlayingSource; // Thêm trạng thái nguồn phát (album/artist)
 
   isFooter: boolean;
   isPlay: boolean;
@@ -40,6 +43,8 @@ const initialState: ItracksState = {
   waitTrackList: [],
   isOpenWaitTrackList: false,
   currentTrack: null,
+
+  playingSource: null,
 
   isFooter: true,
   isPlay: false,
@@ -62,12 +67,15 @@ export const tracksSlice = createSlice({
       action: PayloadAction<{
         waitTrackList: ITrack[];
         currentTrack: ITrack;
+        isInWaitlist: boolean;
+        playingSource: PlayingSource; // Thêm trạng thái nguồn phát (album/artist)
       }>
     ) => {
       state.isPlay = true;
-
       state.waitTrackList = action.payload.waitTrackList;
       state.currentTrack = action.payload.currentTrack;
+      if (action.payload.playingSource)
+        state.playingSource = action.payload.playingSource;
     },
     pause: (state) => {
       state.isPlay = false;
@@ -148,6 +156,8 @@ export const {
 
 export const selectIsInWaitlist = (state: RootState) =>
   state.track.isInWaitlist;
+export const selectPlayingSource = (state: RootState) =>
+  state.track.playingSource;
 export const selectInWhere = (state: RootState) => state.track.inWhere;
 export const selectIsPlay = (state: RootState) => state.track.isPlay;
 export const selectIsFooter = (state: RootState) => state.track.isFooter;

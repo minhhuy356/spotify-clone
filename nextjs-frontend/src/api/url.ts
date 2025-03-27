@@ -1,12 +1,14 @@
 import { profile } from "console";
 
 export const backendUrl = "http://localhost:8080/";
+export const frontendUrl = "http://localhost:3000/";
 
 export const url_api_track_artists = "api/v1/track-artists/";
 export const api_track_artists = {
   top: `${url_api_track_artists}top/`,
   user: `${url_api_track_artists}user`,
   artist: `${url_api_track_artists}artist/`,
+  album: `${url_api_track_artists}album/`,
 };
 
 export const url_api_tracks = "api/v1/tracks/";
@@ -19,7 +21,7 @@ export const api_tracks = {
 export const url_api_user_activity = "api/v1/user-activity/";
 export const api_user_activity = {
   track: `${url_api_user_activity}track`,
-  playlist: `${url_api_user_activity}playlist`,
+  album: `${url_api_user_activity}album`,
   artist: `${url_api_user_activity}artist`,
 };
 

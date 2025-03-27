@@ -25,7 +25,9 @@ const defaultPopulation = [
   {
     path: 'genres',
   },
-
+  {
+    path: 'album',
+  },
   {
     path: 'releasedBy',
   },

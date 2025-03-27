@@ -2,15 +2,24 @@ import { hardLeftWidth } from "@/app/layout";
 import { FaArrowRight } from "react-icons/fa";
 import ChooseLibrary from "./left.chose-library";
 import SearchSortLibrary from "./left.search-sort";
+import { ChooseLibraryBy } from "../left.main";
+import { IoIosAdd } from "react-icons/io";
 
 interface IProps {
   leftWidth: number;
   headerRef?: React.RefObject<HTMLDivElement | null>;
+  chooseLibraryBy: ChooseLibraryBy;
+  setChooseLibraryBy: (value: ChooseLibraryBy) => void;
 }
 
-const LeftHeader = ({ headerRef, leftWidth }: IProps) => {
+const LeftHeader = ({
+  headerRef,
+  leftWidth,
+  chooseLibraryBy,
+  setChooseLibraryBy,
+}: IProps) => {
   return (
-    <div className="py-4 px-2 flex flex-col gap-4 ">
+    <div className="py-4 px-4 flex flex-col gap-4 ">
       <div
         className=" flex top-0 z-10 bg-base overflow-hidden text-white-06 justify-between items-center mb-2"
         ref={headerRef}
@@ -36,13 +45,24 @@ const LeftHeader = ({ headerRef, leftWidth }: IProps) => {
           </div>
         </div>
 
-        <div className={`${leftWidth < hardLeftWidth ? "hidden" : ""}`}>
-          <FaArrowRight />
+        <div
+          className={`${
+            leftWidth < hardLeftWidth ? "hidden" : ""
+          } flex items-center gap-4 `}
+        >
+          <div className=" gap-[4px]  flex items-center xl:px-4 xl:py-1  p-2  bg-40 rounded-full cursor-pointer ">
+            <IoIosAdd size={20} className="scale-150 " />
+            <span className="text-white xl:block hidden">Tạo </span>
+          </div>
+          <FaArrowRight size={20} />
         </div>
       </div>
       {!(leftWidth < hardLeftWidth) && (
         <>
-          <ChooseLibrary />
+          <ChooseLibrary
+            chooseLibraryBy={chooseLibraryBy}
+            setChooseLibraryBy={setChooseLibraryBy}
+          />
           <SearchSortLibrary />
         </>
       )}

@@ -80,7 +80,6 @@ const Upload = () => {
       session?.access_token
     );
     if (res) {
-      console.log(true);
       await Promise.all([
         uploadImage(artist.avatarImg, disk_artists.avatar),
         uploadImage(artist.profileImg, disk_artists.cover),

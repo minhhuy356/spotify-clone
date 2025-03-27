@@ -27,7 +27,7 @@ interface IProps {
   artist: IArtist;
   trackForArtist: ITrack[];
   monthlyListener: IMonthlyListener;
-  chooseByArtist: IChooseByArtist;
+  chooseByArtist?: IChooseByArtist;
 }
 
 const MainArtist = ({
@@ -154,8 +154,9 @@ const MainArtist = ({
               <div className="w-[100%] 4xl:w-[60%]">
                 <PopularTrack artist={artist} trackForArtist={trackForArtist} />
               </div>
-
-              <ChooseByArtist chooseByArtist={chooseByArtist} />
+              {chooseByArtist && (
+                <ChooseByArtist chooseByArtist={chooseByArtist} />
+              )}
 
               {/*Lựa chọn của nghệ sĩ*/}
             </div>

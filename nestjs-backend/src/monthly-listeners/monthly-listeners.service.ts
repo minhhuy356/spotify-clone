@@ -34,7 +34,7 @@ export class MonthlyListenersService {
     dateLimit.setDate(dateLimit.getDate() - 28); // Lấy mốc thời gian 28 ngày trước
 
     const listeners = await this.trackPlaysService.getMonthlyRecord(dateLimit);
-    console.log('listeners', listeners);
+
     // Lưu vào bảng MonthlyListeners
     for (const listener of listeners) {
       const data = await this.monthlyListenersModel.findOneAndUpdate(

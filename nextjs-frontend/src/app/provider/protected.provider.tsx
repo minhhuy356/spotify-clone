@@ -141,13 +141,7 @@ const ProtectedPage = ({ children }: { children: React.ReactNode }) => {
   //   router.push("/auth/signin");
   // }
 
-  return (
-    <>
-      {children}
-      <ContextMenuTrack />
-      <ContextMenuArtist />
-    </>
-  );
+  return <>{children}</>;
 };
 
 export default ProtectedPage;

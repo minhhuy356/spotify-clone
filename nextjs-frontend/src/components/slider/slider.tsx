@@ -24,10 +24,7 @@ import {
   setIsInWaitlist,
   setWaitTrackList,
 } from "@/lib/features/tracks/tracks.slice";
-import {
-  setOpenContextMenuTrack,
-  setType,
-} from "@/lib/features/local/local.slice";
+import { setOpenContextMenuTrack } from "@/lib/features/local/local.slice";
 import { backendUrl, disk_tracks } from "@/api/url";
 import Image from "next/image";
 
@@ -167,14 +164,19 @@ const Slider = (props: IProps) => {
         position,
       })
     );
-    dispatch(setType("local"));
-
   };
 
   const playTrack = (track: ITrack) => {
     if (!isPlay || currentTrack?._id !== track._id) {
       dispatch(pause());
-      dispatch(play({ waitTrackList: [], currentTrack: track }));
+      dispatch(
+        play({
+          waitTrackList: [],
+          currentTrack: track,
+          isInWaitlist: false,
+          playingSource: "track",
+        })
+      );
       dispatch(setInWhere({ where: "track", data: track }));
     }
     if (isPlay && currentTrack?._id === track._id) {

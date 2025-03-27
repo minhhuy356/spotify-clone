@@ -3,13 +3,28 @@ import { useAppSelector } from "@/lib/hook";
 import ArtistCard from "./artists.left";
 import TracksCard from "./track.sleft";
 import AlbumsCard from "./albums.left";
+import { ChooseLibraryBy } from "../left.main";
 
-const ListLibrary = () => {
+interface IProps {
+  chooseLibraryBy: ChooseLibraryBy;
+  setChooseLibraryBy: (value: ChooseLibraryBy) => void;
+}
+
+const ListLibrary = ({ chooseLibraryBy, setChooseLibraryBy }: IProps) => {
   return (
     <div>
-      <ArtistCard />
-      <TracksCard />
-      <AlbumsCard />
+      <ArtistCard
+        chooseLibraryBy={chooseLibraryBy}
+        setChooseLibraryBy={setChooseLibraryBy}
+      />
+      <TracksCard
+        chooseLibraryBy={chooseLibraryBy}
+        setChooseLibraryBy={setChooseLibraryBy}
+      />
+      <AlbumsCard
+        chooseLibraryBy={chooseLibraryBy}
+        setChooseLibraryBy={setChooseLibraryBy}
+      />
     </div>
   );
 };

@@ -1,14 +1,14 @@
 import React, { useEffect, useRef, useState } from "react";
-import { IArtist, IUserActivity } from "@/types/data";
+import { IAlbum, IUserActivity } from "@/types/data";
 
 import { TbPlaylistAdd } from "react-icons/tb";
 import { SlUserFollow } from "react-icons/sl";
 import { useAppDispatch, useAppSelector } from "@/lib/hook";
 import {
-  selectIsOpenContextMenuArtist,
+  selectIsOpenContextMenuAlbum,
   selectPosition,
-  selectTemporaryArtist,
-  setOpenContextMenuArtist,
+  selectTemporaryAlbum,
+  setOpenContextMenuAlbum,
   setPosition,
 } from "@/lib/features/local/local.slice";
 import { CgPlayList } from "react-icons/cg";
@@ -18,7 +18,7 @@ import {
   MdDeleteOutline,
   MdOutlineReportGmailerrorred,
 } from "react-icons/md";
-import { IoIosClose, IoIosRadio } from "react-icons/io";
+import { IoIosAdd, IoIosClose, IoIosRadio } from "react-icons/io";
 import { IoShareOutline } from "react-icons/io5";
 import {
   selectSession,
@@ -27,25 +27,30 @@ import {
 import { sendRequest } from "@/api/api";
 import { api_user_activity, backendUrl } from "@/api/url";
 import store from "@/lib/store";
+import { TiPinOutline, TiTick } from "react-icons/ti";
+import {
+  selectWaitTrackList,
+  setWaitTrackList,
+} from "@/lib/features/tracks/tracks.slice";
 
 interface IHTMLProps extends React.HTMLAttributes<HTMLDivElement> {}
 
-const SubscribeArtistQueue: Array<{ artistId: string; quantity: number }> = [];
+const SubscribeAlbumQueue: Array<{ AlbumId: string; quantity: number }> = [];
 let isProcessingQueue = false;
 
 const processSubscribeAritstQueue = async (session: any) => {
-  if (isProcessingQueue || SubscribeArtistQueue.length === 0) return;
+  if (isProcessingQueue || SubscribeAlbumQueue.length === 0) return;
   isProcessingQueue = true;
-  while (SubscribeArtistQueue.length > 0) {
-    const action = SubscribeArtistQueue.shift();
+  while (SubscribeAlbumQueue.length > 0) {
+    const action = SubscribeAlbumQueue.shift();
     if (!action) continue;
     try {
       await sendRequest<IBackendRes<IUserActivity>>({
-        url: `${backendUrl}${api_user_activity.artist}`,
+        url: `${backendUrl}${api_user_activity.album}`,
         method: "POST",
         body: {
           user: session?.user._id,
-          artist: action.artistId,
+          Album: action.AlbumId,
           quantity: action.quantity,
         },
         headers: {
@@ -54,7 +59,7 @@ const processSubscribeAritstQueue = async (session: any) => {
       });
     } catch (error) {
       console.error(
-        `Error processing like for track ${action.artistId}:`,
+        `Error processing like for track ${action.AlbumId}:`,
         error
       );
     }
@@ -62,19 +67,19 @@ const processSubscribeAritstQueue = async (session: any) => {
   isProcessingQueue = false;
 };
 
-const ContextMenuArtist = ({}: IHTMLProps) => {
+const ContextMenuAlbum = ({}: IHTMLProps) => {
   const dispatch = useAppDispatch();
 
   const session = useAppSelector(selectSession);
   const position = useAppSelector(selectPosition);
-  const temporaryArtist = useAppSelector(selectTemporaryArtist);
-  const isOpenContextMenuArtist = useAppSelector(selectIsOpenContextMenuArtist);
-
+  const temporaryAlbum = useAppSelector(selectTemporaryAlbum);
+  const isOpenContextMenuAlbum = useAppSelector(selectIsOpenContextMenuAlbum);
+  const waitTrackList = useAppSelector(selectWaitTrackList);
   const menuRef = useRef<HTMLDivElement | null>(null);
 
   // Handle opening the tab and calculating the position
   const handleCloseTab = () => {
-    dispatch(setOpenContextMenuArtist({ isOpenContextMenuArtist: false }));
+    dispatch(setOpenContextMenuAlbum({ isOpenContextMenuAlbum: false }));
   };
 
   useEffect(() => {
@@ -96,7 +101,7 @@ const ContextMenuArtist = ({}: IHTMLProps) => {
   }, []);
 
   useEffect(() => {
-    if (isOpenContextMenuArtist) {
+    if (isOpenContextMenuAlbum) {
       if (!menuRef.current) return;
 
       const menuElement = menuRef.current;
@@ -133,22 +138,22 @@ const ContextMenuArtist = ({}: IHTMLProps) => {
 
       dispatch(setPosition({ x: newX, y: newY }));
     }
-  }, [isOpenContextMenuArtist]);
+  }, [isOpenContextMenuAlbum]);
 
-  const handleSubscribeArtist = async () => {
-    if (!session || !temporaryArtist) return;
+  const handleSubscribeAlbum = async () => {
+    if (!session || !temporaryAlbum) return;
 
     handleCloseTab();
 
-    const isSubscribed = session.user.artists.some(
-      (a) => a._id === temporaryArtist._id
+    const isSubscribed = session.user.albums.some(
+      (a) => a._id === temporaryAlbum._id
     );
-    const newArtists = isSubscribed
-      ? session.user.artists.filter((item) => item._id !== temporaryArtist._id)
-      : [...session.user.artists, temporaryArtist];
+    const newAlbums = isSubscribed
+      ? session.user.albums.filter((item) => item._id !== temporaryAlbum._id)
+      : [...session.user.albums, temporaryAlbum];
 
-    SubscribeArtistQueue.push({
-      artistId: temporaryArtist._id,
+    SubscribeAlbumQueue.push({
+      AlbumId: temporaryAlbum._id,
       quantity: isSubscribed ? -1 : 1,
     });
 
@@ -157,7 +162,7 @@ const ContextMenuArtist = ({}: IHTMLProps) => {
     }
 
     dispatch(
-      setSessionActivity({ artists: newArtists, tracks: [], albums: [] })
+      setSessionActivity({ artists: [], tracks: [], albums: newAlbums })
     );
 
     // **Lấy lại session mới từ Redux rồi lưu vào localStorage**
@@ -168,11 +173,28 @@ const ContextMenuArtist = ({}: IHTMLProps) => {
     }, 100);
   };
 
-  const isLikeArtist = session?.user.artists.some(
-    (item) => item._id === temporaryArtist?._id
+  const isLikeAlbum = session?.user.albums.some(
+    (item) => item._id === temporaryAlbum?._id
   );
 
-  if (!isOpenContextMenuArtist) return null; // Ẩn menu nếu không mở
+  const handleAddWaitTrackList = () => {
+    // if (temporaryAlbum) {
+    //   // Kiểm tra nếu track đã tồn tại trong danh sách
+    //   const isTrackInList = waitTrackList.some(
+    //     (t) => t._id === temporaryAlbum._id
+    //   );
+    //   if (isTrackInList) {
+    //     handleCloseTab();
+    //     return;
+    //   }
+    //   // Nếu track chưa tồn tại, thêm vào danh sách
+    //   const newWaitTrackList = [...waitTrackList, temporaryAlbum];
+    //   dispatch(setWaitTrackList(newWaitTrackList));
+    //   handleCloseTab();
+    // }
+  };
+
+  if (!isOpenContextMenuAlbum) return null; // Ẩn menu nếu không mở
 
   return (
     <div
@@ -185,53 +207,61 @@ const ContextMenuArtist = ({}: IHTMLProps) => {
       className=" bg-40 text-white shadow-lg rounded-lg z-[10000]"
     >
       <div className="flex flex-col bg-40 text-white">
-        {isLikeArtist ? (
-          <div
-            className="flex gap-3 opacity-90   hover:opacity-100 hover:bg-hover  cursor-pointer py-3 px-5"
-            onClick={handleSubscribeArtist}
-          >
-            <div className="flex items-center scale-[1.7]">
-              <IoIosClose className="text-green-500" size={20} />
+        {isLikeAlbum ? (
+          <div className="flex gap-3 opacity-90   hover:opacity-100 hover:bg-hover  cursor-pointer py-3 px-4 items-center">
+            <div className="flex items-center bg-green-500 size-[20px] rounded-full relative">
+              <TiTick
+                size={15}
+                className="text-40 absolute top-[52%] left-1/2 -translate-1/2"
+              />
             </div>
-            <div>Hủy theo dõi</div>
+            <div className="">Xóa khỏi thư viện</div>
           </div>
         ) : (
           <div
-            className="flex gap-3 opacity-90   hover:opacity-100 hover:bg-hover  cursor-pointer py-3 px-5"
-            onClick={handleSubscribeArtist}
+            className="flex gap-3 opacity-90   hover:opacity-100 hover:bg-hover  cursor-pointer py-3 px-4"
+            onClick={handleSubscribeAlbum}
           >
-            <div className="flex items-center text-white-06">
+            <div className="flex items-center">
               <SlUserFollow size={20} />
             </div>
-            <div>Theo dõi</div>
+            <div>Thêm vào thư viện</div>
           </div>
         )}
-
-        <div className="flex gap-3 opacity-90   hover:opacity-100 hover:bg-hover  cursor-pointer py-3 px-5">
+        <div
+          className="flex gap-3 opacity-90   hover:opacity-100 hover:bg-hover  cursor-pointer py-3 px-4 "
+          onClick={() => handleAddWaitTrackList()}
+        >
           <div className="flex items-center text-white-06">
-            <MdBlock size={20} />
+            <TbPlaylistAdd size={20} />
           </div>
-          <div>Không phát nghệ sĩ này</div>
+          <div>Thêm vào danh sách chờ</div>
         </div>
-        <div className="flex gap-3 opacity-90   hover:opacity-100 hover:bg-hover  cursor-pointer py-3 px-5">
+        <div className="flex gap-3 opacity-90   hover:opacity-100 hover:bg-hover  cursor-pointer py-3 px-4">
           <div className="flex items-center text-white-06">
             <IoIosRadio size={20} />
           </div>
           <div>Chuyển đến radio theo nghệ sĩ</div>
         </div>
-        <div className="flex gap-3 opacity-90   hover:opacity-100 hover:bg-hover  cursor-pointer py-3 px-5">
+        <div className="flex gap-3 opacity-90   hover:opacity-100 hover:bg-hover  cursor-pointer py-3 px-4 border-t-[1px] border-70 border-solid">
           <div className="flex items-center text-white-06">
-            <MdOutlineReportGmailerrorred size={20} />
+            <TiPinOutline size={20} />
           </div>
-          <div>Báo cáo</div>
+          <div>Ghim Album</div>
+        </div>{" "}
+        <div className="flex gap-3 opacity-90   hover:opacity-100 hover:bg-hover  cursor-pointer py-3 px-4">
+          <div className="flex items-center text-white-06">
+            <IoIosAdd size={20} />
+          </div>
+          <div>Thêm vào danh sách phát</div>
         </div>
-        <div className="flex gap-3 opacity-90   hover:opacity-100 hover:bg-hover  cursor-pointer py-3 px-5">
+        <div className="flex gap-3 opacity-90   hover:opacity-100 hover:bg-hover  cursor-pointer py-3 px-4 border-t-[1px] border-70 border-solid">
           <div className="flex items-center text-white-06">
             <IoShareOutline size={20} />
           </div>
           <div>Chia sẽ</div>
         </div>
-        <div className="flex gap-3 opacity-90 hover:opacity-100 hover:bg-hover  cursor-pointer py-3 px-5 border-t-[1px] border-70 border-solid">
+        <div className="flex gap-3 opacity-90 hover:opacity-100 hover:bg-hover  cursor-pointer py-3 px-4 border-t-[1px] border-70 border-solid">
           <div className="flex items-center text-white-06">
             <MdComputer size={20} />
           </div>
@@ -242,4 +272,4 @@ const ContextMenuArtist = ({}: IHTMLProps) => {
   );
 };
 
-export default ContextMenuArtist;
+export default ContextMenuAlbum;

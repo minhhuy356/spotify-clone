@@ -1,58 +1,31 @@
 import { Album } from '@/albums/schemas/Album.schema';
 import { Artist } from '@/artists/schemas/artist.schema';
-import { FolderUser } from '@/folder-user/schemas/folder-user.schema';
-
+import { Genre } from '@/genres/schemas/genre.schema';
 import { PlaylistUser } from '@/playlist-user/schemas/playlist-user.schema';
-
 import { Track } from '@/tracks/schemas/track.schemas';
-import { ITrack } from '@/types/data';
+
 import { User } from '@/users/schemas/user.schema';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import mongoose, { HydratedDocument, ObjectId, Types } from 'mongoose';
 
-export type UserActivityDocument = HydratedDocument<UserActivity>;
+export type FolderUserDocument = HydratedDocument<FolderUser>;
 
 @Schema({ timestamps: true })
-export class UserActivity {
-  @Prop({
-    type: [mongoose.Schema.Types.ObjectId],
-    required: true,
-    ref: Track.name,
-  })
-  tracks: Types.ObjectId[];
+export class FolderUser {
+  @Prop({ required: true })
+  name: string;
 
   @Prop({
     type: [mongoose.Schema.Types.ObjectId],
     required: true,
-    ref: Artist.name,
-  })
-  artists: Types.ObjectId[];
-
-  @Prop({
-    type: [mongoose.Schema.Types.ObjectId],
-    required: true,
-    ref: Album.name,
-  })
-  albums: Types.ObjectId[];
-
-  @Prop({
-    type: [mongoose.Schema.Types.ObjectId],
     ref: PlaylistUser.name,
-    default: [],
   })
-  playlists: Types.ObjectId[];
-
-  @Prop({
-    type: [mongoose.Schema.Types.ObjectId],
-    ref: FolderUser.name,
-    default: [],
-  })
-  folders: Types.ObjectId[];
+  playlists: ObjectId[];
 
   @Prop({
     type: mongoose.Schema.Types.ObjectId,
+    required: true,
     ref: User.name,
-    default: '',
   })
   user: ObjectId;
 
@@ -74,11 +47,11 @@ export class UserActivity {
   })
   deletedBy: ObjectId;
 
-  @Prop()
+  @Prop({ default: false })
   isDeleted: boolean;
 
   @Prop()
   deletedAt: Date;
 }
 
-export const UserActivitySchema = SchemaFactory.createForClass(UserActivity);
+export const FolderUserSchema = SchemaFactory.createForClass(FolderUser);

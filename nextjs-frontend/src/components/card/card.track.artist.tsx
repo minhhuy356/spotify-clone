@@ -5,10 +5,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { FaPause, FaPlay } from "react-icons/fa";
 
 import { useAppDispatch, useAppSelector } from "@/lib/hook";
-import {
-  setOpenContextMenuTrack,
-  setType,
-} from "@/lib/features/local/local.slice";
+import { setOpenContextMenuTrack } from "@/lib/features/local/local.slice";
 import {
   pause,
   play,
@@ -41,7 +38,12 @@ const CardTrackArtist = (props: IProps) => {
       if (!isPlay || currentTrack !== track) {
         dispatch(pause());
         dispatch(
-          play({ waitTrackList: [...trackForArtist], currentTrack: track })
+          play({
+            waitTrackList: [...trackForArtist],
+            currentTrack: track,
+            isInWaitlist: false,
+            playingSource: "track",
+          })
         );
       }
       if (isPlay && currentTrack === track) {
@@ -49,7 +51,12 @@ const CardTrackArtist = (props: IProps) => {
       }
     } else {
       dispatch(
-        play({ waitTrackList: [...trackForArtist], currentTrack: track })
+        play({
+          waitTrackList: [...trackForArtist],
+          currentTrack: track,
+          isInWaitlist: false,
+          playingSource: "track",
+        })
       );
     }
   };
@@ -69,7 +76,6 @@ const CardTrackArtist = (props: IProps) => {
         position,
       })
     );
-    dispatch(setType("drawer"));
   };
 
   const audio = new Audio(
@@ -102,7 +108,7 @@ const CardTrackArtist = (props: IProps) => {
   return (
     <div
       key={track._id}
-      className={`flex p-2 px-8 gap-6 rounded group hover:bg-hover`}
+      className={`flex p-2 px-6 gap-6 rounded group hover:bg-hover`}
       onContextMenu={(e) => handleOpenContextMenuTrack(e)}
     >
       <div className="flex items-center relative  justify-center w-[16px] ">

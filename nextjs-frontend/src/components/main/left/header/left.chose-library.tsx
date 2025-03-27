@@ -1,9 +1,13 @@
 import { useEffect, useRef, useState } from "react";
 import { FaArrowLeft, FaArrowRight } from "react-icons/fa";
-import { IoIosArrowBack, IoIosArrowForward } from "react-icons/io";
+import { IoIosArrowBack, IoIosArrowForward, IoIosClose } from "react-icons/io";
 import SearchSortLibrary from "./left.search-sort";
-
-const ChooseLibrary = () => {
+import { ChooseLibraryBy } from "../left.main";
+interface IProps {
+  chooseLibraryBy: ChooseLibraryBy;
+  setChooseLibraryBy: (value: ChooseLibraryBy) => void;
+}
+const ChooseLibrary = ({ chooseLibraryBy, setChooseLibraryBy }: IProps) => {
   const sliderRef = useRef<HTMLDivElement>(null);
   const [atStart, setAtStart] = useState(true);
   const [atEnd, setAtEnd] = useState(false);
@@ -36,7 +40,7 @@ const ChooseLibrary = () => {
     const updateArrowVisibility = () => {
       if (sliderRef.current) {
         const { scrollLeft, scrollWidth, clientWidth } = sliderRef.current;
-        console.log(scrollLeft <= 0);
+
         setAtStart(scrollLeft <= 0);
         setAtEnd(scrollLeft + clientWidth >= scrollWidth - 1);
       }
@@ -88,15 +92,55 @@ const ChooseLibrary = () => {
         onMouseUp={handleMouseUpOrLeave}
         onMouseLeave={handleMouseUpOrLeave}
       >
-        <div className="py-1 px-3 bg-40 text-white rounded-full cursor-pointer whitespace-nowrap">
-          <span>Danh sách phát</span>
-        </div>
-        <div className="py-1 px-3 bg-40 text-white rounded-full cursor-pointer whitespace-nowrap">
-          <span>Nghệ sĩ</span>
-        </div>
-        <div className="py-1 px-3 bg-40 text-white rounded-full cursor-pointer whitespace-nowrap">
-          <span>Album</span>
-        </div>{" "}
+        {chooseLibraryBy === "all" && (
+          <>
+            <div
+              className="py-1 px-3 bg-40 text-white rounded-full cursor-pointer whitespace-nowrap hover:bg-50 "
+              onClick={() => setChooseLibraryBy("artist")}
+            >
+              <span>Nghệ sĩ</span>
+            </div>
+            <div
+              className="py-1 px-3 bg-40 text-white rounded-full cursor-pointer whitespace-nowrap hover:bg-50"
+              onClick={() => setChooseLibraryBy("album")}
+            >
+              <span>Album</span>
+            </div>
+          </>
+        )}
+        {chooseLibraryBy === "artist" && (
+          <>
+            {" "}
+            <div
+              className="p-1 bg-40 text-white rounded-full cursor-pointer whitespace-nowrap hover:bg-50"
+              onClick={() => setChooseLibraryBy("all")}
+            >
+              <IoIosClose size={25} />
+            </div>
+            <div
+              className="py-1 px-3 rounded-full cursor-pointer whitespace-nowrap bg-white text-black "
+              onClick={() => setChooseLibraryBy("artist")}
+            >
+              <span>Nghệ sĩ</span>
+            </div>
+          </>
+        )}
+        {chooseLibraryBy === "album" && (
+          <>
+            <div
+              className="p-1 bg-40 text-white rounded-full cursor-pointer whitespace-nowrap hover:bg-50"
+              onClick={() => setChooseLibraryBy("all")}
+            >
+              <IoIosClose size={25} />
+            </div>
+            <div
+              className="py-1 px-3 rounded-full cursor-pointer whitespace-nowrap bg-white text-black"
+              onClick={() => setChooseLibraryBy("album")}
+            >
+              <span>Album</span>
+            </div>
+          </>
+        )}
         {!atStart && (
           <div
             className={`absolute left-0 w-[66px] h-full bg-gradient-to-r from-black to-transparent rounded-full`}

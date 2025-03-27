@@ -22,6 +22,8 @@ import {
   ultimateLeftWidth,
   widthDrag,
 } from "../layout";
+import ContextMenuArtist from "@/components/context-menu/context-menu.artist";
+import ContextMenuAlbum from "@/components/context-menu/conntex-menu.album";
 
 interface ILayout {
   left: IPosition;
@@ -85,7 +87,6 @@ export default function RootLayout({
             minLeftWidth -
             space);
         setIsMobile(true);
-        console.log(isMobile);
       } else if (screenWidth > 900) {
         setIsMobile(false);
         if (layout.left.isClose === false) {
@@ -211,7 +212,7 @@ export default function RootLayout({
             }
             if (layout.center < hardCenterWidth) {
               layout.center = hardCenterWidth;
-              console.log(true);
+
               if (layout.right > hardRightWidth) {
                 layout.right =
                   screenWidth - layout.center - layout.left.width - space;
@@ -237,7 +238,6 @@ export default function RootLayout({
               layout.center > hardCenterWidth + 200 &&
               layout.right === minRightWidth
             ) {
-              console.log(true);
               layout.right = hardRightWidth;
               layout.left.width =
                 screenWidth - hardCenterWidth - hardRightWidth - space;
@@ -420,6 +420,7 @@ export default function RootLayout({
         </div>
       </div>
       <ContextMenuTrack />
+      <ContextMenuArtist /> <ContextMenuAlbum />
     </div>
   );
 }

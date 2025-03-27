@@ -69,7 +69,7 @@ export class UserActivitysService {
     user: IUser,
   ) {
     const { quantity, track } = createUserActivityDto;
-    console.log(createUserActivityDto, user);
+
     //Check track existed or not
     await this.trackService.findById(createUserActivityDto.track.toString());
 

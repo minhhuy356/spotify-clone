@@ -39,7 +39,7 @@ const DetailArtistPage = async ({ params }: ArtistPageProps) => {
   const monthlyListener =
     await monthly_listener_service.getMonthlyListenForArtist(slug);
 
-  if (!artist || !trackForArtist || !monthlyListener || !chooseByArtist)
+  if (!artist || !trackForArtist || !monthlyListener)
     return <Loading></Loading>;
 
   return (

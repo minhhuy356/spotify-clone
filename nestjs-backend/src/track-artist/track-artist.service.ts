@@ -26,9 +26,15 @@ import path from 'path';
 const defaultPopulation = [
   {
     path: 'track',
-    populate: [{ path: 'genres' }, { path: 'releasedBy' }],
+    populate: [
+      { path: 'genres' },
+      { path: 'releasedBy' },
+      {
+        path: 'album',
+        match: { _id: { $exists: true } }, // Chỉ populate nếu album có _id hợp lệ
+      },
+    ],
   },
-
   {
     path: 'artist',
   },
@@ -278,7 +284,6 @@ export class TrackArtistsService {
     matchMode?: 'every' | 'some';
   }) {
     const { genres, limit, matchMode = 'some' } = body; // Mặc định là 'some'
-    console.log(body);
 
     if (!genres || !Array.isArray(genres) || genres.length === 0) {
       throw new BadRequestException('Genres must be a non-empty array');
@@ -394,12 +399,16 @@ export class TrackArtistsService {
       .populate(defaultPopulation)
       .lean()
       .exec();
+    console.log(rawData);
 
     // ✅ Lọc các track có album đúng với yêu cầu
     const filteredData = rawData.filter((item) => {
-      return (item.track as any).album.toString() === albumId; // 🔥 Lọc theo album
+      return (
+        (item.track as any).album &&
+        (item.track as any).album._id.toString() === albumId
+      );
     });
-    console.log(filteredData);
+
     // ✅ Gộp bài hát có cùng track._id
     const groupedData = filteredData.reduce((acc, item) => {
       const trackId = (item.track as any)._id.toString();
@@ -418,7 +427,9 @@ export class TrackArtistsService {
       return acc;
     }, {});
 
-    // ✅ Giới hạn kết quả
-    return Object.values(groupedData);
+    // ✅ Chuyển đối tượng thành mảng và sắp xếp theo order tăng dần
+    return Object.values(groupedData).sort(
+      (a: any, b: any) => a.order - b.order,
+    );
   }
 }

@@ -25,6 +25,19 @@ export const getTrackForArtist = async (_id: string, sortBy?: string) => {
   }
 };
 
+export const getTrackForAlbum = async (albumId: string) => {
+  try {
+    const res = await sendRequest<IBackendRes<ITrack[]>>({
+      url: `${backendUrl}${api_track_artists.album}${albumId}`,
+      method: "GET",
+    });
+
+    return res.data;
+  } catch (error) {
+    throw new Error("Lỗi khi lấy danh sách bài hát của album");
+  }
+};
+
 export const uploadTrack = async (track: INewTrack, access_token: string) => {
   try {
     const res = await sendRequest<IBackendRes<ITrack[]>>({
@@ -78,4 +91,5 @@ export const track_artist_service = {
   getTrackForArtist,
   uploadTrack,
   fetchWaitlistBasedOnGenre, // Định nghĩa service chứa hàm
+  getTrackForAlbum,
 };

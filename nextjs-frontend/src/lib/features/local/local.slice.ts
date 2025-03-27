@@ -1,5 +1,5 @@
 import { RootState } from "@/lib/store";
-import { IArtist, ITrack } from "@/types/data";
+import { IAlbum, IArtist, ITrack } from "@/types/data";
 
 import { createSlice } from "@reduxjs/toolkit";
 import type { PayloadAction } from "@reduxjs/toolkit";
@@ -11,20 +11,22 @@ type TabType = "local" | "drawer" | null;
 interface ILocalState {
   isOpenContextMenuTrack: boolean;
   isOpenContextMenuArtist: boolean;
+  isOpenContextMenuAlbum: boolean;
+  temporaryAlbum?: IAlbum | null;
   temporaryArtist?: IArtist | null;
   temporaryTrack?: ITrack | null;
   position?: { x: number; y: number } | null;
-  type?: TabType;
 }
 
 // Define the initial state using that type
 const initialState: ILocalState = {
   isOpenContextMenuTrack: false,
   isOpenContextMenuArtist: false,
+  isOpenContextMenuAlbum: false,
+  temporaryAlbum: null,
   temporaryArtist: null,
   temporaryTrack: null,
   position: null,
-  type: null,
 };
 
 export const localSlice = createSlice({
@@ -65,8 +67,22 @@ export const localSlice = createSlice({
         state.position = action.payload.position;
       }
     },
-    setType(state, action: PayloadAction<TabType>) {
-      state.type = action.payload;
+    setOpenContextMenuAlbum(
+      state,
+      action: PayloadAction<{
+        isOpenContextMenuAlbum: boolean;
+        temporaryAlbum?: IAlbum;
+        position?: { x: number; y: number } | null;
+      }>
+    ) {
+      state.isOpenContextMenuAlbum = action.payload.isOpenContextMenuAlbum;
+      if (action.payload.isOpenContextMenuAlbum === true) {
+        state.temporaryAlbum = action.payload.temporaryAlbum;
+        state.position = action.payload.position;
+      } else {
+        state.temporaryTrack = null;
+        state.position = action.payload.position;
+      }
     },
     setPosition(state, action: PayloadAction<{ x: number; y: number }>) {
       state.position = action.payload;
@@ -77,19 +93,24 @@ export const localSlice = createSlice({
 export const {
   setOpenContextMenuTrack,
   setOpenContextMenuArtist,
-  setType,
+  setOpenContextMenuAlbum,
   setPosition,
 } = localSlice.actions;
 
 // Other code such as selectors can use the imported `RootState` type
+export const selectPosition = (state: RootState) => state.local.position;
 export const selectIsOpenContextMenuTrack = (state: RootState) =>
   state.local.isOpenContextMenuTrack;
 export const selectIsOpenContextMenuArtist = (state: RootState) =>
   state.local.isOpenContextMenuArtist;
-export const selectPosition = (state: RootState) => state.local.position;
+export const selectIsOpenContextMenuAlbum = (state: RootState) =>
+  state.local.isOpenContextMenuAlbum;
+
 export const selectTemporaryTrack = (state: RootState) =>
   state.local.temporaryTrack;
 export const selectTemporaryArtist = (state: RootState) =>
   state.local.temporaryArtist;
-export const selectType = (state: RootState) => state.local.type;
+export const selectTemporaryAlbum = (state: RootState) =>
+  state.local.temporaryAlbum;
+
 export default localSlice.reducer;

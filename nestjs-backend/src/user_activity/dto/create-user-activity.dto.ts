@@ -22,6 +22,14 @@ export class CreateUserActivitysDto {
   @IsOptional()
   album?: mongoose.Schema.Types.ObjectId;
 
+  @IsMongoId()
+  @IsOptional()
+  playlist?: mongoose.Schema.Types.ObjectId;
+
+  @IsMongoId()
+  @IsOptional()
+  folder?: mongoose.Schema.Types.ObjectId;
+
   @IsOptional()
   @IsMongoId()
   user?: mongoose.Schema.Types.ObjectId;
