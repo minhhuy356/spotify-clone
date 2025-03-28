@@ -17,12 +17,12 @@ import { CreatePlaylistUsersDto } from './dto/create-playlist-user.dto';
 
 @Controller('playlist-user')
 export class PlaylistUsersController {
-  constructor(private readonly PlaylistUserService: PlaylistUsersService) {}
+  constructor(private readonly playlistUserService: PlaylistUsersService) {}
 
   @Post()
   @ResponseMessage('Create new PlaylistUser')
   create(@Body() createPlaylistUserDto: CreatePlaylistUsersDto) {
-    return this.PlaylistUserService.create(createPlaylistUserDto);
+    return this.playlistUserService.create(createPlaylistUserDto);
   }
 
   @Public()
@@ -33,14 +33,14 @@ export class PlaylistUsersController {
     @Query('pageSize') pageSize: number,
     @Query() qs: string,
   ) {
-    return this.PlaylistUserService.findAll(+current, +pageSize, qs);
+    return this.playlistUserService.findAll(+current, +pageSize, qs);
   }
 
   @Public()
   @Get(':id')
   @ResponseMessage('Find by id')
   findById(@Param('id') id: string) {
-    return this.PlaylistUserService.findById(id);
+    return this.playlistUserService.findById(id);
   }
 
   @Patch(':id')
@@ -50,12 +50,12 @@ export class PlaylistUsersController {
     @Body() updatePlaylistUserDto: UpdatePlaylistUsersDto,
     @User() user: IUser,
   ) {
-    return this.PlaylistUserService.update(id, updatePlaylistUserDto, user);
+    return this.playlistUserService.update(id, updatePlaylistUserDto, user);
   }
 
   @Delete(':id')
   @ResponseMessage('Delete by id')
   remove(@Param('id') id: string, @User() user: IUser) {
-    return this.PlaylistUserService.remove(id, user);
+    return this.playlistUserService.remove(id, user);
   }
 }

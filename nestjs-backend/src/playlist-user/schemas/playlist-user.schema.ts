@@ -28,6 +28,9 @@ export class PlaylistUser {
   })
   user: ObjectId;
 
+  @Prop({ default: null })
+  order: number;
+
   @Prop({
     type: mongoose.Schema.Types.ObjectId,
     ref: User.name,

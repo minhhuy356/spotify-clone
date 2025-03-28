@@ -48,9 +48,9 @@ export class Track {
   @Prop({
     type: mongoose.Schema.Types.ObjectId,
     ref: Album.name,
-    default: '',
+    default: null,
   })
-  album: ObjectId;
+  album: ObjectId | null;
 
   @Prop({ default: null })
   order: number | null;

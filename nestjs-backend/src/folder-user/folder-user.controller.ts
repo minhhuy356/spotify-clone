@@ -10,18 +10,18 @@ import {
 } from '@nestjs/common';
 import { Public, ResponseMessage, User } from '@/decorator/customize';
 import { IUser } from '@/users/users.interface';
-import { FolderUsersService } from './Folder-user.service';
+import { FolderUsersService } from './folder-user.service';
 import { UpdateFolderUsersDto } from './dto/update-folder-user.dto';
 import { CreateFolderUsersDto } from './dto/create-folder-user.dto';
 
-@Controller('Folder-user')
+@Controller('folder-user')
 export class FolderUsersController {
-  constructor(private readonly FolderUserService: FolderUsersService) {}
+  constructor(private readonly folderUserService: FolderUsersService) {}
 
   @Post()
   @ResponseMessage('Create new FolderUser')
   create(@Body() createFolderUserDto: CreateFolderUsersDto) {
-    return this.FolderUserService.create(createFolderUserDto);
+    return this.folderUserService.create(createFolderUserDto);
   }
 
   @Public()
@@ -32,14 +32,14 @@ export class FolderUsersController {
     @Query('pageSize') pageSize: number,
     @Query() qs: string,
   ) {
-    return this.FolderUserService.findAll(+current, +pageSize, qs);
+    return this.folderUserService.findAll(+current, +pageSize, qs);
   }
 
   @Public()
   @Get(':id')
   @ResponseMessage('Find by id')
   findById(@Param('id') id: string) {
-    return this.FolderUserService.findById(id);
+    return this.folderUserService.findById(id);
   }
 
   @Patch(':id')
@@ -49,12 +49,12 @@ export class FolderUsersController {
     @Body() updateFolderUserDto: UpdateFolderUsersDto,
     @User() user: IUser,
   ) {
-    return this.FolderUserService.update(id, updateFolderUserDto, user);
+    return this.folderUserService.update(id, updateFolderUserDto, user);
   }
 
   @Delete(':id')
   @ResponseMessage('Delete by id')
   remove(@Param('id') id: string, @User() user: IUser) {
-    return this.FolderUserService.remove(id, user);
+    return this.folderUserService.remove(id, user);
   }
 }

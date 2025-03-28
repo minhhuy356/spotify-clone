@@ -1,9 +1,9 @@
 import { IsObjectId } from '@/decorator/is-object-id';
-import { IsArray, IsOptional, IsString } from 'class-validator';
+import { IsArray, IsNumber, IsOptional, IsString } from 'class-validator';
 import { ObjectId } from 'mongoose';
 
 export class CreatePlaylistUsersDto {
-  @IsString({ message: 'Name must be a string' })
+  @IsString()
   name: string;
 
   @IsArray()
@@ -13,4 +13,7 @@ export class CreatePlaylistUsersDto {
   @IsObjectId()
   @IsOptional()
   user: ObjectId;
+
+  @IsNumber()
+  order: number;
 }

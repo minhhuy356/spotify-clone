@@ -9,23 +9,20 @@ export class Role {
   @Prop()
   name: string;
 
-  @Prop({
-    type: mongoose.Schema.Types.ObjectId,
-    ref: User.name,
-  })
-  createdBy: ObjectId;
+  // @Prop({
+  //   type: mongoose.Schema.Types.ObjectId,
+  // })
+  // createdBy: ObjectId;
 
-  @Prop({
-    type: mongoose.Schema.Types.ObjectId,
-    ref: User.name,
-  })
-  updatedBy: ObjectId;
+  // @Prop({
+  //   type: mongoose.Schema.Types.ObjectId,
+  // })
+  // updatedBy: ObjectId;
 
-  @Prop({
-    type: mongoose.Schema.Types.ObjectId,
-    ref: User.name,
-  })
-  deletedBy: ObjectId;
+  // @Prop({
+  //   type: mongoose.Schema.Types.ObjectId,
+  // })
+  // deletedBy: ObjectId;
 
   @Prop({ default: false })
   isDeleted: boolean;

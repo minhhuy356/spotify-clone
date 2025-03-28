@@ -23,7 +23,7 @@ import mongoose from 'mongoose';
 export class PlaylistUsersService {
   constructor(
     @InjectModel(PlaylistUser.name)
-    private PlaylistUserModel: SoftDeleteModel<PlaylistUserDocument>,
+    private playlistUserModel: SoftDeleteModel<PlaylistUserDocument>,
   ) {}
 
   hashPassword = (password: string) => {
@@ -35,7 +35,7 @@ export class PlaylistUsersService {
 
   async create(createPlaylistUserDto: CreatePlaylistUsersDto) {
     // Kiểm tra xem email đã tồn tại chưa
-    const existingPlaylistUser = await this.PlaylistUserModel.findOne({
+    const existingPlaylistUser = await this.playlistUserModel.findOne({
       name: createPlaylistUserDto.name,
     });
     // Nếu email đã tồn tại thì trả ra lỗi
@@ -46,7 +46,7 @@ export class PlaylistUsersService {
       );
     }
 
-    const result = await this.PlaylistUserModel.create({
+    const result = await this.playlistUserModel.create({
       ...createPlaylistUserDto,
     });
 
@@ -68,10 +68,11 @@ export class PlaylistUsersService {
     let offset = (+current - 1) * +pageSize;
     let defaultpageSize = +pageSize ? +pageSize : 10;
 
-    const totalItems = (await this.PlaylistUserModel.find(filter)).length;
+    const totalItems = (await this.playlistUserModel.find(filter)).length;
     const totalPages = Math.ceil(totalItems / defaultpageSize);
 
-    const data = await this.PlaylistUserModel.find(filter)
+    const data = await this.playlistUserModel
+      .find(filter)
       .skip(offset)
       .limit(defaultpageSize)
       .sort(sort as any)
@@ -91,7 +92,7 @@ export class PlaylistUsersService {
   }
 
   async findById(id: string) {
-    const result = await this.PlaylistUserModel.findById(id);
+    const result = await this.playlistUserModel.findById(id);
 
     if (!result) {
       throw new HttpException('PlaylistUser not found', HttpStatus.NOT_FOUND);
@@ -101,7 +102,7 @@ export class PlaylistUsersService {
   }
 
   async findOneByName(name: string) {
-    const result = await this.PlaylistUserModel.findOne({ name });
+    const result = await this.playlistUserModel.findOne({ name });
 
     if (!result) {
       throw new HttpException('PlaylistUser not found', HttpStatus.NOT_FOUND);
@@ -115,7 +116,7 @@ export class PlaylistUsersService {
     updatePlaylistUserDto: UpdatePlaylistUsersDto,
     user: IUser,
   ) {
-    const result = await this.PlaylistUserModel.updateOne(
+    const result = await this.playlistUserModel.updateOne(
       { _id: id },
       {
         ...updatePlaylistUserDto,
@@ -132,13 +133,13 @@ export class PlaylistUsersService {
   async remove(id: string, user) {
     if (!mongoose.Types.ObjectId.isValid(id)) return `not found PlaylistUser`;
 
-    const foundUser = await this.PlaylistUserModel.findById(id);
+    const foundUser = await this.playlistUserModel.findById(id);
 
     if (foundUser.name === 'ADMIN') {
       throw new BadRequestException('Cannot delete PlaylistUser ADMIN');
     }
 
-    await this.PlaylistUserModel.updateOne(
+    await this.playlistUserModel.updateOne(
       { _id: id },
       {
         deletedBy: {
@@ -148,7 +149,7 @@ export class PlaylistUsersService {
       },
     );
 
-    const result = await this.PlaylistUserModel.softDelete({
+    const result = await this.playlistUserModel.softDelete({
       _id: id,
     });
 

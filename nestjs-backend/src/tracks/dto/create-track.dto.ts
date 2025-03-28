@@ -57,7 +57,7 @@ export class CreateTracksDto {
 
   @IsMongoId({ each: true })
   @IsOptional()
-  album: ObjectId;
+  album: ObjectId | null;
 
   @IsNumber()
   @IsOptional()
