@@ -11,16 +11,18 @@ import { SoftDeleteModel } from 'soft-delete-plugin-mongoose';
 import { IUser } from '@/users/users.interface';
 
 import aqp from 'api-query-params';
-import { FolderUser, FolderUserDocument } from './schemas/folder-user.schema';
-import { CreateFolderUsersDto } from './dto/create-folder-user.dto';
-import { UpdateFolderUsersDto } from './dto/update-folder-user.dto';
+import { UserFolder, UserFolderDocument } from './schemas/user-folder.schema';
+import { CreateUserFoldersDto } from './dto/create-user-folder.dto';
+import { UpdateUserFoldersDto } from './dto/update-user-folder.dto';
 import mongoose from 'mongoose';
+import { UserActivitysService } from '@/user_activity/user-activity.service';
 
 @Injectable()
-export class FolderUsersService {
+export class UserFoldersService {
   constructor(
-    @InjectModel(FolderUser.name)
-    private folderUserModel: SoftDeleteModel<FolderUserDocument>,
+    @InjectModel(UserFolder.name)
+    private UserFolderModel: SoftDeleteModel<UserFolderDocument>,
+    private userActivitysService: UserActivitysService,
   ) {}
 
   hashPassword = (password: string) => {
@@ -30,29 +32,23 @@ export class FolderUsersService {
     return hash;
   };
 
-  async create(createFolderUserDto: CreateFolderUsersDto) {
-    // Kiểm tra xem email đã tồn tại chưa
-    const existingFolderUser = await this.folderUserModel.findOne({
-      name: createFolderUserDto.name,
-    });
-    // Nếu email đã tồn tại thì trả ra lỗi
-    if (existingFolderUser) {
-      throw new HttpException(
-        'FolderUser already exists',
-        HttpStatus.BAD_REQUEST,
-      );
-    }
-
-    const result = await this.folderUserModel.create({
-      ...createFolderUserDto,
+  async create(createUserFolderDto: CreateUserFoldersDto, user: IUser) {
+    const result = await this.UserFolderModel.create({
+      ...createUserFolderDto,
     });
 
     if (!result) {
       throw new HttpException(
-        'Create new FolderUser failed',
+        'Create new UserFolder failed',
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
+
+    await this.userActivitysService.UpdateFolder(
+      result._id.toString(),
+      user._id.toString(),
+      1,
+    );
 
     return result;
   }
@@ -65,11 +61,10 @@ export class FolderUsersService {
     let offset = (+current - 1) * +pageSize;
     let defaultpageSize = +pageSize ? +pageSize : 10;
 
-    const totalItems = (await this.folderUserModel.find(filter)).length;
+    const totalItems = (await this.UserFolderModel.find(filter)).length;
     const totalPages = Math.ceil(totalItems / defaultpageSize);
 
-    const data = await this.folderUserModel
-      .find(filter)
+    const data = await this.UserFolderModel.find(filter)
       .skip(offset)
       .limit(defaultpageSize)
       .sort(sort as any)
@@ -89,20 +84,20 @@ export class FolderUsersService {
   }
 
   async findById(id: string) {
-    const result = await this.folderUserModel.findById(id);
+    const result = await this.UserFolderModel.findById(id);
 
     if (!result) {
-      throw new HttpException('FolderUser not found', HttpStatus.NOT_FOUND);
+      throw new HttpException('UserFolder not found', HttpStatus.NOT_FOUND);
     }
 
     return result;
   }
 
   async findOneByName(name: string) {
-    const result = await this.folderUserModel.findOne({ name });
+    const result = await this.UserFolderModel.findOne({ name });
 
     if (!result) {
-      throw new HttpException('FolderUser not found', HttpStatus.NOT_FOUND);
+      throw new HttpException('UserFolder not found', HttpStatus.NOT_FOUND);
     }
 
     return result;
@@ -110,13 +105,13 @@ export class FolderUsersService {
 
   async update(
     id: string,
-    updateFolderUserDto: UpdateFolderUsersDto,
+    updateUserFolderDto: UpdateUserFoldersDto,
     user: IUser,
   ) {
-    const result = await this.folderUserModel.updateOne(
+    const result = await this.UserFolderModel.updateOne(
       { _id: id },
       {
-        ...updateFolderUserDto,
+        ...updateUserFolderDto,
         updatedBy: {
           _id: user._id,
           email: user.email,
@@ -128,15 +123,7 @@ export class FolderUsersService {
   }
 
   async remove(id: string, user) {
-    if (!mongoose.Types.ObjectId.isValid(id)) return `not found FolderUser`;
-
-    const foundUser = await this.folderUserModel.findById(id);
-
-    if (foundUser.name === 'ADMIN') {
-      throw new BadRequestException('Cannot delete FolderUser ADMIN');
-    }
-
-    await this.folderUserModel.updateOne(
+    await this.UserFolderModel.updateOne(
       { _id: id },
       {
         deletedBy: {
@@ -146,13 +133,15 @@ export class FolderUsersService {
       },
     );
 
-    const result = await this.folderUserModel.softDelete({
+    const result = await this.UserFolderModel.deleteOne({
       _id: id,
     });
 
-    if (result.deleted < 1) {
-      throw new HttpException('FolderUser not found', HttpStatus.NOT_FOUND);
+    if (result.deletedCount < 1) {
+      throw new HttpException('UserFolder not found', HttpStatus.NOT_FOUND);
     }
+
+    await this.userActivitysService.UpdateFolder(id, user._id.toString(), -1);
 
     return result;
   }

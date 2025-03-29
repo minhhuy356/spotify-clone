@@ -2,7 +2,7 @@ import { IsObjectId } from '@/decorator/is-object-id';
 import { IsArray, IsNumber, IsOptional, IsString } from 'class-validator';
 import { ObjectId } from 'mongoose';
 
-export class CreatePlaylistUsersDto {
+export class CreateUserPlaylistsDto {
   @IsString()
   name: string;
 
@@ -12,8 +12,13 @@ export class CreatePlaylistUsersDto {
 
   @IsObjectId()
   @IsOptional()
-  user: ObjectId;
+  user?: ObjectId;
+
+  @IsObjectId()
+  @IsOptional()
+  folder?: ObjectId;
 
   @IsNumber()
-  order: number;
+  @IsOptional()
+  order: number | null;
 }

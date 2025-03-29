@@ -25,8 +25,9 @@ import { AlbumsModule } from './albums/albums.module';
 import { TrackPlaysModule } from './track-plays/track-plays.module';
 import { MonthlyListenersModule } from './monthly-listeners/monthly-listeners.module';
 import { ChooseByArtistsModule } from './choose-by-artist/choose-by-artist.module';
-import { FolderUsersModule } from './folder-user/folder-user.module';
-import { PlaylistUsersModule } from './playlist-user/playlist-user.module';
+import { UserPlaylistsModule } from './user-playlist/user-playlist.module';
+import { UserFolder } from './user-folder/schemas/user-folder.schema';
+import { UserFoldersModule } from './user-folder/user-folder.module';
 
 @Module({
   imports: [
@@ -65,8 +66,8 @@ import { PlaylistUsersModule } from './playlist-user/playlist-user.module';
     TrackPlaysModule,
     MonthlyListenersModule,
     ChooseByArtistsModule,
-    FolderUsersModule,
-    PlaylistUsersModule,
+    UserPlaylistsModule,
+    UserFoldersModule,
   ],
   controllers: [AppController],
   providers: [AppService],

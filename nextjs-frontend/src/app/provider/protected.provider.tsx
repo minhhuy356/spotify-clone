@@ -21,6 +21,7 @@ import {
 import ContextMenuTrack from "@/components/context-menu/context-menu.track";
 import ContextMenuArtist from "@/components/context-menu/context-menu.artist";
 import { selectTemporaryArtist } from "@/lib/features/local/local.slice";
+import { access } from "fs";
 
 const ProtectedPage = ({ children }: { children: React.ReactNode }) => {
   const session = useAppSelector(selectSession);
@@ -59,60 +60,47 @@ const ProtectedPage = ({ children }: { children: React.ReactNode }) => {
   };
 
   const checkAndRefreshToken = async () => {
-    if (!session) {
-      console.log("⚠️ Không tìm thấy token, dừng kiểm tra.");
+    if (!session || !session.access_token) {
+      console.log("⚠️ Không tìm thấy access token, dừng kiểm tra.");
       return;
     }
 
-    const oneDay = 86400;
     const oneHour = 3600;
-
-    // Giải mã access token
     const decodedAccess = jwt.decode(session.access_token) as {
       exp: number;
     } | null;
 
-    // Giải mã refresh token
-    const refresh_token = await getRefreshToken(session.access_token);
-
-    const decodedRefresh = jwt.decode(refresh_token) as {
-      exp: number;
-    } | null;
-
-    if (!decodedAccess || !decodedRefresh) {
-      console.log("❌ Không thể giải mã token. Bắt buộc đăng nhập lại.");
+    if (!decodedAccess) {
+      console.log("❌ Access token không hợp lệ. Bắt buộc đăng nhập lại.");
       logout();
-      router.push("/auth/signin"); // Bắt buộc đăng nhập lại nếu token không hợp lệ
+      router.push("/auth/signin");
       return;
     }
 
-    const currentTime = Math.floor(Date.now() / 1000); // Lấy thời gian hiện tại (seconds)
-    const accessExpiry = decodedAccess.exp; // Thời gian hết hạn của access token
-    const refreshExpiry = decodedRefresh.exp; // Thời gian hết hạn của refresh token
-
-    if (currentTime >= refreshExpiry - oneDay) {
-      console.log("❌ Refresh token hết hạn. Bắt buộc đăng nhập lại.");
-      logout();
-      router.push("/auth/signin"); // Yêu cầu đăng nhập lại nếu refresh token hết hạn
-      return;
-    }
+    const currentTime = Math.floor(Date.now() / 1000);
+    const accessExpiry = decodedAccess.exp;
 
     if (currentTime >= accessExpiry - oneHour) {
-      console.log("🔄 Access token hết hạn, thực hiện refresh...");
+      console.log("🔄 Access token sắp hết hạn, thực hiện refresh...");
 
       try {
+        // Gửi access token để lấy access token mới
         const res = await getNewAccessToken();
 
-        if (res?.data?.result) {
-          const session = res.data.result;
+        if (!res.ok) throw new Error("Lỗi khi refresh token");
 
-          dispatch(setSession(session));
-          localStorage.setItem("session", JSON.stringify(session));
-          console.log("✅ Token refreshed successfully, updating session...");
+        const data = await res.json();
+        if (data?.access_token) {
+          const newSession = { ...session, access_token: data.access_token };
+
+          dispatch(setSession(newSession));
+          localStorage.setItem("session", JSON.stringify(newSession));
+          console.log("✅ Token refreshed successfully!");
         }
       } catch (error) {
         console.log("❌ Token refresh failed, forcing re-login");
-        // router.push("/auth/signin");
+        logout();
+        router.push("/auth/signin");
       }
     }
   };

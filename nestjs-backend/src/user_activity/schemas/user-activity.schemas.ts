@@ -1,11 +1,10 @@
 import { Album } from '@/albums/schemas/Album.schema';
 import { Artist } from '@/artists/schemas/artist.schema';
-import { FolderUser } from '@/folder-user/schemas/folder-user.schema';
-
-import { PlaylistUser } from '@/playlist-user/schemas/playlist-user.schema';
 
 import { Track } from '@/tracks/schemas/track.schemas';
 import { ITrack } from '@/types/data';
+import { UserFolder } from '@/user-folder/schemas/user-folder.schema';
+import { UserPlaylist } from '@/user-playlist/schemas/user-playlist.schema';
 import { User } from '@/users/schemas/user.schema';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import mongoose, { HydratedDocument, ObjectId, Types } from 'mongoose';
@@ -37,14 +36,14 @@ export class UserActivity {
 
   @Prop({
     type: [mongoose.Schema.Types.ObjectId],
-    ref: PlaylistUser.name,
+    ref: UserPlaylist.name,
     default: [],
   })
   playlists: Types.ObjectId[];
 
   @Prop({
     type: [mongoose.Schema.Types.ObjectId],
-    ref: FolderUser.name,
+    ref: UserFolder.name,
     default: [],
   })
   folders: Types.ObjectId[];

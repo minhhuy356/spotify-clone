@@ -38,8 +38,6 @@ export const logoutService = async (session: IAuth) => {
       const res = await response.json();
       return res.data;
     }
-
-    throw new Error("Không có dữ liệu người dùng");
   } catch (error) {
     throw new Error("Đăng nhập thất bại");
   }
@@ -59,14 +57,14 @@ export const getNewAccessToken = async () => {
       const res = await response.json();
       return res.data;
     }
-
-    throw new Error("Không có dữ liệu người dùng");
   } catch (error) {
-    throw new Error("Đăng nhập thất bại");
+    throw new Error("Đăng nhập bằng refresh token thất bại");
   }
 };
+
 export const getRefreshToken = async (access_token: string) => {
   try {
+    console.log(access_token);
     const response: any = await fetch(`${backendUrl}${api_auth.refresh}`, {
       method: "GET",
       credentials: "include", // ✅ Giúp trình duyệt lưu cookie
@@ -78,12 +76,10 @@ export const getRefreshToken = async (access_token: string) => {
 
     if (response) {
       const res = await response.json();
-
+      console.log(res);
       return res.data.refreshToken;
     }
-
-    throw new Error("Không có dữ liệu người dùng");
   } catch (error) {
-    throw new Error("Đăng nhập thất bại");
+    throw new Error("Lấy refresh token thất bại");
   }
 };

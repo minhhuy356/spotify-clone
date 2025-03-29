@@ -20,6 +20,7 @@ import { TracksService } from '@/tracks/tracks.service';
 import { ArtistsService } from '@/artists/artists.service';
 import { AlbumsService } from '@/albums/Albums.service';
 import path from 'path';
+import { UserActivitysModule } from './user-activity.module';
 const populate = [
   {
     path: 'artists',
@@ -42,14 +43,14 @@ const populate = [
 export class UserActivitysService {
   constructor(
     @InjectModel(UserActivity.name)
-    private UserActivityModel: SoftDeleteModel<UserActivityDocument>,
+    private userActivityModel: SoftDeleteModel<UserActivityDocument>,
     private albumservice: AlbumsService,
     private trackService: TracksService,
     private artistService: ArtistsService,
   ) {}
 
   async CreateNewUserActivity(createUserActivityDto: CreateUserActivitysDto) {
-    const alreadtExistsUser = this.UserActivityModel.findOne({
+    const alreadtExistsUser = this.userActivityModel.findOne({
       user: createUserActivityDto.user.toString(),
     });
 
@@ -57,11 +58,11 @@ export class UserActivitysService {
       throw new HttpException('User is already exists!', HttpStatus.FOUND);
     }
 
-    return await this.UserActivityModel.create(createUserActivityDto);
+    return await this.userActivityModel.create(createUserActivityDto);
   }
 
   async create(user: string) {
-    return await this.UserActivityModel.create({ user });
+    return await this.userActivityModel.create({ user });
   }
 
   async SubscribeTrack(
@@ -77,20 +78,20 @@ export class UserActivitysService {
     await this.trackService.increaseLike(track.toString(), quantity, user);
 
     //Check user existed or not in UserActivity schema
-    const existingUser = await this.UserActivityModel.findOne({
+    const existingUser = await this.userActivityModel.findOne({
       user: user._id,
     });
 
     if (existingUser) {
       // 🛠 Kiểm tra xem track đã có trong danh sách chưa
-      const trackExists = await this.UserActivityModel.findOne({
+      const trackExists = await this.userActivityModel.findOne({
         user: user._id,
         tracks: track, // Kiểm tra track đã tồn tại trong mảng `tracks`
       });
 
       if (!trackExists && quantity === 1) {
         // Nếu track chưa có và quantity = 1, thêm vào
-        const result = await this.UserActivityModel.updateOne(
+        const result = await this.userActivityModel.updateOne(
           { user: user._id },
           { $push: { tracks: track }, updatedBy: user._id, user: user._id },
         );
@@ -98,7 +99,7 @@ export class UserActivitysService {
         return result;
       } else if (trackExists && quantity === -1) {
         // Nếu track có và quantity = -1, Xóa !
-        const result = await this.UserActivityModel.updateOne(
+        const result = await this.userActivityModel.updateOne(
           { user: user._id },
           { $pull: { tracks: track }, updatedBy: user._id, user: user._id },
         );
@@ -106,7 +107,7 @@ export class UserActivitysService {
         return result;
       }
     } else {
-      const result = await this.UserActivityModel.create({
+      const result = await this.userActivityModel.create({
         tracks: [track],
         user: user._id,
       });
@@ -127,32 +128,32 @@ export class UserActivitysService {
     await this.artistService.updateCountLike(artist.toString(), quantity, user);
 
     //Check user existed or not in UserActivity schema
-    const existingUser = await this.UserActivityModel.findOne({
+    const existingUser = await this.userActivityModel.findOne({
       user: user._id,
     });
 
     if (existingUser) {
       // 🛠 Kiểm tra xem artist đã có trong danh sách chưa
-      const trackExists = await this.UserActivityModel.findOne({
+      const trackExists = await this.userActivityModel.findOne({
         user: user._id,
         artists: artist, // Kiểm tra artist đã tồn tại trong mảng `artists`
       });
 
       if (!trackExists && quantity === 1) {
         // Nếu artist chưa có và quantity = 1, thêm vào
-        const result = await this.UserActivityModel.updateOne(
+        const result = await this.userActivityModel.updateOne(
           { user: user._id },
           { $push: { artists: artist }, updatedBy: user._id },
         );
       } else if (trackExists && quantity === -1) {
         // Nếu artist có và quantity = -1, Xóa !
-        const result = await this.UserActivityModel.updateOne(
+        const result = await this.userActivityModel.updateOne(
           { user: user._id },
           { $pull: { artists: artist }, updatedBy: user._id },
         );
       }
     } else {
-      const result = await this.UserActivityModel.create({
+      const result = await this.userActivityModel.create({
         artists: [artist],
         user: user._id,
       });
@@ -173,38 +174,63 @@ export class UserActivitysService {
     await this.albumservice.updateCountLike(album.toString(), quantity, user);
 
     //Check user existed or not in UserActivity schema
-    const existingUser = await this.UserActivityModel.findOne({
+    const existingUser = await this.userActivityModel.findOne({
       user: user._id,
     });
 
     if (existingUser) {
-      // 🛠 Kiểm tra xem artist đã có trong danh sách chưa
-      const trackExists = await this.UserActivityModel.findOne({
+      const trackExists = await this.userActivityModel.findOne({
         user: user._id,
-        albums: album, // Kiểm tra artist đã tồn tại trong mảng `artists`
+        albums: album,
       });
 
       if (!trackExists && quantity === 1) {
-        // Nếu artist chưa có và quantity = 1, thêm vào
-        const result = await this.UserActivityModel.updateOne(
+        const result = await this.userActivityModel.updateOne(
           { user: user._id },
           { $push: { albums: album }, updatedBy: user._id },
         );
         return result;
       } else if (trackExists && quantity === -1) {
-        // Nếu artist có và quantity = -1, Xóa !
-        const result = await this.UserActivityModel.updateOne(
+        const result = await this.userActivityModel.updateOne(
           { user: user._id },
           { $pull: { albums: album }, updatedBy: user._id },
         );
         return result;
       }
     } else {
-      const result = await this.UserActivityModel.create({
+      const result = await this.userActivityModel.create({
         albums: [album],
         user: user._id,
       });
       return result;
+    }
+  }
+
+  async UpdateFolder(folderId: string, userId: string, quantity: number) {
+    if (quantity === 1) {
+      return await this.userActivityModel.updateOne(
+        { user: userId },
+        { $push: { folders: folderId }, updatedBy: userId },
+      );
+    } else {
+      return await this.userActivityModel.updateOne(
+        { user: userId },
+        { $pull: { folders: folderId }, updatedBy: userId },
+      );
+    }
+  }
+
+  async UpdatePlaylist(playlistId: string, userId: string, quantity: number) {
+    if (quantity === 1) {
+      return await this.userActivityModel.updateOne(
+        { user: userId },
+        { $push: { playlists: playlistId }, updatedBy: userId },
+      );
+    } else {
+      return await this.userActivityModel.updateOne(
+        { user: userId },
+        { $pull: { playlists: playlistId }, updatedBy: userId },
+      );
     }
   }
 
@@ -216,7 +242,7 @@ export class UserActivitysService {
     let offset = (+current - 1) * +pageSize;
     let defaultpageSize = +pageSize ? +pageSize : 10;
 
-    const totalItems = (await this.UserActivityModel.find(filter)).length;
+    const totalItems = (await this.userActivityModel.find(filter)).length;
     const totalPages = Math.ceil(totalItems / defaultpageSize);
 
     const defaultPopulation = [
@@ -230,7 +256,8 @@ export class UserActivitysService {
       },
     ];
 
-    const data = await this.UserActivityModel.find(filter)
+    const data = await this.userActivityModel
+      .find(filter)
       .skip(offset)
       .limit(defaultpageSize)
       .sort(sort as any)
@@ -262,10 +289,11 @@ export class UserActivitysService {
     let offset = (+current - 1) * +pageSize;
     let defaultpageSize = +pageSize ? +pageSize : 10;
 
-    const totalItems = (await this.UserActivityModel.find(filter)).length;
+    const totalItems = (await this.userActivityModel.find(filter)).length;
     const totalPages = Math.ceil(totalItems / defaultpageSize);
 
-    const data = await this.UserActivityModel.find({ user: user._id })
+    const data = await this.userActivityModel
+      .find({ user: user._id })
       .skip(offset)
       .limit(defaultpageSize)
       .sort(sort as any)
@@ -285,9 +313,11 @@ export class UserActivitysService {
   }
 
   async findById(id: string) {
-    const result = await this.UserActivityModel.findOne({
-      user: id,
-    }).populate(populate);
+    const result = await this.userActivityModel
+      .findOne({
+        user: id,
+      })
+      .populate(populate);
 
     if (!result) {
       throw new HttpException('UserActivity not found', HttpStatus.NOT_FOUND);
@@ -301,7 +331,7 @@ export class UserActivitysService {
     updateUserActivityDto: UpdateUserActivitysDto,
     user: IUser,
   ) {
-    const result = await this.UserActivityModel.updateOne(
+    const result = await this.userActivityModel.updateOne(
       { _id: id },
       {
         ...updateUserActivityDto,
@@ -313,14 +343,14 @@ export class UserActivitysService {
   }
 
   async remove(id: string, user: IUser) {
-    await this.UserActivityModel.updateOne(
+    await this.userActivityModel.updateOne(
       { _id: id },
       {
         deletedBy: user._id,
       },
     );
 
-    const remove = await this.UserActivityModel.softDelete({
+    const remove = await this.userActivityModel.softDelete({
       _id: id,
     });
 
