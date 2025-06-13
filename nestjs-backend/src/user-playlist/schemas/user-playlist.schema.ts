@@ -16,6 +16,12 @@ export class UserPlaylist {
   @Prop({ required: true })
   name: string;
 
+  @Prop({ default: '' })
+  imgUrl: string;
+
+  @Prop({ default: '' })
+  description: string;
+
   @Prop({
     type: [mongoose.Schema.Types.ObjectId],
     required: true,
@@ -37,6 +43,12 @@ export class UserPlaylist {
 
   @Prop({ default: null })
   order: number;
+
+  @Prop({ default: null })
+  addLibraryAt: Date;
+
+  @Prop({ default: null })
+  pinnedAt: Date;
 
   @Prop({
     type: mongoose.Schema.Types.ObjectId,

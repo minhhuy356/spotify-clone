@@ -3,11 +3,12 @@ import React, { useEffect } from "react";
 import jwt from "jsonwebtoken";
 import { sendRequest } from "@/api/api";
 
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { CircularProgress } from "@mui/material";
 import { useAppDispatch, useAppSelector } from "@/lib/hook";
 import {
   selectIsPending,
+  selectIsSignin,
   selectSession,
   setSession,
   setSessionActivity,
@@ -22,10 +23,12 @@ import ContextMenuTrack from "@/components/context-menu/context-menu.track";
 import ContextMenuArtist from "@/components/context-menu/context-menu.artist";
 import { selectTemporaryArtist } from "@/lib/features/local/local.slice";
 import { access } from "fs";
+import ModalBackendError from "@/components/modal/modal.backend";
 
 const ProtectedPage = ({ children }: { children: React.ReactNode }) => {
   const session = useAppSelector(selectSession);
   const isPending = useAppSelector(selectIsPending);
+  const isSignin = useAppSelector(selectIsSignin);
 
   const dispatch = useAppDispatch();
 
@@ -62,6 +65,7 @@ const ProtectedPage = ({ children }: { children: React.ReactNode }) => {
   const checkAndRefreshToken = async () => {
     if (!session || !session.access_token) {
       console.log("⚠️ Không tìm thấy access token, dừng kiểm tra.");
+      if (!isPending) router.push("/auth/signin");
       return;
     }
 
@@ -73,7 +77,6 @@ const ProtectedPage = ({ children }: { children: React.ReactNode }) => {
     if (!decodedAccess) {
       console.log("❌ Access token không hợp lệ. Bắt buộc đăng nhập lại.");
       logout();
-      router.push("/auth/signin");
       return;
     }
 
@@ -88,7 +91,7 @@ const ProtectedPage = ({ children }: { children: React.ReactNode }) => {
         const res = await getNewAccessToken();
 
         if (!res.ok) throw new Error("Lỗi khi refresh token");
-
+        router.push("/auth/signin");
         const data = await res.json();
         if (data?.access_token) {
           const newSession = { ...session, access_token: data.access_token };
@@ -98,9 +101,11 @@ const ProtectedPage = ({ children }: { children: React.ReactNode }) => {
           console.log("✅ Token refreshed successfully!");
         }
       } catch (error) {
-        console.log("❌ Token refresh failed, forcing re-login");
-        logout();
-        router.push("/auth/signin");
+        if (!isPending) {
+          router.push("/auth/signin");
+          console.log("❌ Token refresh failed, forcing re-login");
+          logout();
+        }
       }
     }
   };
@@ -117,19 +122,19 @@ const ProtectedPage = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
-  if (isPending) {
-    return (
-      <div className="w-full h-screen grid place-items-center">
-        <CircularProgress />
-      </div>
-    );
-  }
+  useEffect(() => {
+    if (session) {
+      localStorage.setItem("session", JSON.stringify(session));
+      // Đánh dấu người dùng đã đăng nhập
+    }
+  }, [session]); // Mỗi khi session thay đổi, cập nhật vào localStorage
 
-  // if (!session) {
-  //   router.push("/auth/signin");
-  // }
-
-  return <>{children}</>;
+  return (
+    <>
+      {children}
+      <ModalBackendError />
+    </>
+  );
 };
 
 export default ProtectedPage;

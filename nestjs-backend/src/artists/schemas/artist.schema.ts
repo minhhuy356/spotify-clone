@@ -34,6 +34,11 @@ export class Artist {
   @Prop({ default: 0 })
   countLike: number;
 
+  @Prop({ default: null })
+  addLibraryAt: Date;
+  @Prop({ default: null })
+  pinnedAt: Date;
+
   @Prop({
     type: mongoose.Schema.Types.ObjectId,
     ref: User.name,

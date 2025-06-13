@@ -38,4 +38,10 @@ export class AppController {
     const message = 'Yêu Trân <3';
     return { message: message };
   }
+
+  @Get('health')
+  @Public()
+  getHealth(): string {
+    return 'OK';
+  }
 }

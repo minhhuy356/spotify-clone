@@ -15,7 +15,7 @@ export class ChooseByArtist {
   })
   artist: string;
 
-  @Prop({ required: true })
+  @Prop({})
   chooseImgUrl: string;
 
   @Prop({ default: '' })
@@ -24,7 +24,6 @@ export class ChooseByArtist {
   @Prop({
     type: mongoose.Schema.Types.ObjectId,
     ref: Track.name,
-    required: true,
   })
   chooseTrack: ObjectId;
 

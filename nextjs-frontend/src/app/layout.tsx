@@ -11,8 +11,10 @@ import React from "react";
 import "@/app/globals.css";
 import { StoreProvider } from "./provider/store.provider";
 import ProtectedPage from "./provider/protected.provider";
+import { NotificationProvider } from "@/components/notification/notification-context";
+import Notification from "@/components/notification/notification";
 
-interface ILayout {
+export interface ILayout {
   left: IPosition;
   right: number;
   center: number;
@@ -25,10 +27,10 @@ interface IPosition {
 const gap = 4;
 const widthDrag = 2;
 const px = 16;
-const space = gap * 4 + widthDrag * 2 + px;
+const space = gap * 4 + widthDrag * 2 + px - 8;
 
 const minLeftWidth = 72;
-const minRightWidth = 40;
+const minRightWidth = 0;
 const hardLeftWidth = 280;
 const hardCenterWidth = 424;
 const hardRightWidth = 280;
@@ -62,7 +64,10 @@ export default function RootLayout({
     <html lang="en">
       <body>
         <StoreProvider>
-          <ProtectedPage>{children}</ProtectedPage>
+          <NotificationProvider>
+            <ProtectedPage>{children}</ProtectedPage>
+            <Notification />
+          </NotificationProvider>
         </StoreProvider>
       </body>
     </html>

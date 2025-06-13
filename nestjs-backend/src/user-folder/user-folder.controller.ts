@@ -14,7 +14,7 @@ import { UserFoldersService } from './user-folder.service';
 import { UpdateUserFoldersDto } from './dto/update-user-folder.dto';
 import { CreateUserFoldersDto } from './dto/create-user-folder.dto';
 
-@Controller('folder-user')
+@Controller('user-folder')
 export class UserFoldersController {
   constructor(private readonly UserFolderService: UserFoldersService) {}
 

@@ -1,12 +1,19 @@
 import { AiFillSound } from "react-icons/ai";
 import { useState } from "react";
+import { TiVolumeDown, TiVolumeMute } from "react-icons/ti";
 
 const VolumeControl = ({
   volume,
   onChange,
+  onMouseUp,
+  onMuteVolume,
+  onUnMuteVolume,
 }: {
   volume: number;
   onChange: (value: number) => void;
+  onMouseUp: (value: number) => void;
+  onMuteVolume: () => void;
+  onUnMuteVolume: () => void;
 }) => {
   const [isHovering, setIsHovering] = useState(false);
 
@@ -16,13 +23,34 @@ const VolumeControl = ({
       onMouseEnter={() => setIsHovering(true)}
       onMouseLeave={() => setIsHovering(false)}
     >
-      <AiFillSound className="text-xl" />
+      {volume !== 0 ? (
+        <TiVolumeDown
+          size={32}
+          onClick={() => onMuteVolume()}
+          className="cursor-pointer"
+        />
+      ) : (
+        <TiVolumeMute
+          size={32}
+          onClick={() => onUnMuteVolume()}
+          className="cursor-pointer"
+        />
+      )}
+
       <input
         type="range"
         min="0"
         max="100"
         value={volume * 100} // Hiển thị giá trị từ 0 → 100
         onChange={(e) => onChange(Number(e.target.value) / 100)}
+        onMouseUp={(e) => {
+          const val = Number(e.currentTarget.value) / 100;
+          // Gọi onChange lại 1 lần để chắc chắn đồng bộ giá trị
+          onChange(val);
+          if (val > 0) {
+            localStorage.setItem("volumeBefore", val.toString());
+          }
+        }}
         className="w-24 h-1 rounded-lg appearance-none cursor-pointer range-slider"
       />
       <style jsx>{`

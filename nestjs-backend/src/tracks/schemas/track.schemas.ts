@@ -1,6 +1,7 @@
 import { Album } from '@/albums/schemas/Album.schema';
 import { Artist } from '@/artists/schemas/artist.schema';
 import { Genre } from '@/genres/schemas/genre.schema';
+import { Tag } from '@/tag/schemas/tag.schema';
 
 import { User } from '@/users/schemas/user.schema';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
@@ -25,6 +26,9 @@ export class Track {
 
   @Prop({ default: '' })
   videoUrl: string;
+
+  @Prop({ default: '' })
+  videoListenFirstUrl: string;
 
   @Prop({
     type: [mongoose.Schema.Types.ObjectId],
@@ -54,6 +58,25 @@ export class Track {
 
   @Prop({ default: null })
   order: number | null;
+
+  @Prop({ default: null })
+  addLibraryAt: Date;
+
+  @Prop({ default: null })
+  pinnedAt: Date;
+
+  @Prop({ default: '', required: false })
+  copyrightNotice: string;
+
+  @Prop({ default: '', required: false })
+  phonogramCopyright: string;
+
+  @Prop({
+    type: [mongoose.Schema.Types.ObjectId],
+    ref: Tag.name,
+    default: [],
+  })
+  tags: ObjectId[];
 
   @Prop({
     type: mongoose.Schema.Types.ObjectId,

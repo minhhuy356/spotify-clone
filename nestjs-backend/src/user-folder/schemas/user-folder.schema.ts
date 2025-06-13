@@ -16,6 +16,11 @@ export class UserFolder {
   })
   user: ObjectId;
 
+  @Prop({ default: null })
+  addLibraryAt: Date;
+  @Prop({ default: null })
+  pinnedAt: Date;
+
   @Prop({
     type: mongoose.Schema.Types.ObjectId,
     ref: User.name,

@@ -48,13 +48,25 @@ export class UserPlaylistsService {
       );
     }
 
-    await this.userActivitysService.UpdatePlaylist(
-      result._id.toString(),
-      user._id.toString(),
-      1,
-    );
+    try {
+      await this.userActivitysService.UpdatePlaylist(
+        result._id.toString(),
+        user._id.toString(),
+        1,
+      );
+    } catch (error) {
+      throw new error();
+    }
 
-    return result;
+    const resAddLibrary = await this.userPlaylistModel.updateOne(
+      { _id: result._id.toString() },
+      { addLibraryAt: new Date() },
+    );
+    if (resAddLibrary) {
+      const info = this.userPlaylistModel.findOne({ _id: result._id });
+
+      return info;
+    }
   }
 
   async findAll(current: number, pageSize: number, qs: string) {
@@ -138,7 +150,7 @@ export class UserPlaylistsService {
       },
     );
 
-    return result;
+    if (result) return await this.userPlaylistModel.findById(id);
   }
 
   async remove(id: string, user: IUser) {

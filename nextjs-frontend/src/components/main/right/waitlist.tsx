@@ -44,8 +44,12 @@ const Waitlist = (props: IProps) => {
         play({
           waitTrackList: clone,
           currentTrack: track,
-          isInWaitlist: true,
-          playingSource: "track",
+          inWaitList: true,
+          playingSource: {
+            in: "track",
+            title: "",
+            before: "track",
+          },
         })
       );
     }
@@ -74,6 +78,7 @@ const Waitlist = (props: IProps) => {
         isOpenContextMenuTrack: true,
         temporaryTrack: track,
         position,
+        inLibrary: true,
       })
     );
   };

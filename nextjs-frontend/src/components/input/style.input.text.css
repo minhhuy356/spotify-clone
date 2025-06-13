@@ -1,0 +1,12 @@
+.rosHlzYfiO0UfpmOhP4I:before {
+  background: #282828;
+  content: "";
+  height: 2px;
+  position: absolute;
+  right: 50%;
+  top: 50%;
+  -webkit-transform: translate(50%, -50%);
+  transform: translate(50%, -50%);
+  width: 110%;
+  z-index: -1;
+}

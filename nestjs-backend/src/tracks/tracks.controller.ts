@@ -10,6 +10,8 @@ import {
   HttpException,
   Res,
   ParseUUIDPipe,
+  NotFoundException,
+  Req,
 } from '@nestjs/common';
 
 import { Public, ResponseMessage, User } from '@/decorator/customize';
@@ -18,7 +20,8 @@ import { TracksService } from './tracks.service';
 import { CreateTracksDto } from './dto/create-track.dto';
 import { UpdateTracksDto } from './dto/update-track.dto';
 import { join } from 'path';
-import { createReadStream } from 'fs';
+import { createReadStream, existsSync, statSync } from 'fs';
+import { Response, Request } from 'express';
 
 @Controller('tracks')
 export class TracksController {
@@ -42,9 +45,9 @@ export class TracksController {
   }
 
   @Public()
-  @Post('top')
+  @Post('genres-name')
   getTop(@Body() body: { genres: string[]; limit: number }) {
-    return this.trackService.findTrackByGenres(body);
+    return this.trackService.findTrackByNameGenres(body);
   }
 
   @Public()
@@ -74,14 +77,13 @@ export class TracksController {
   remove(@Param('id') id: string, @User() user: IUser) {
     return this.trackService.remove(id, user);
   }
-
-  @Public()
   @Get('stream/audio/:filename')
-  streamAudio(@Param('filename') filename: string, @Res() res: any) {
-    res.setHeader('Content-Type', 'audio/mpeg');
-    res.setHeader('Content-Disposition', 'inline'); // Không cho phép tải xuống
-    res.setHeader('Cache-Control', 'no-store');
-
+  @Public()
+  streamAudio(
+    @Param('filename') filename: string,
+    @Res() res: Response,
+    @Req() req: Request,
+  ) {
     const filePath = join(
       __dirname,
       '..',
@@ -91,8 +93,55 @@ export class TracksController {
       'audios',
       filename,
     );
-    console.log(filePath);
-    const stream = createReadStream(filePath);
-    stream.pipe(res);
+
+    if (!existsSync(filePath)) {
+      throw new NotFoundException('Audio file not found');
+    }
+
+    const stat = statSync(filePath);
+    const fileSize = stat.size;
+    const range =
+      typeof req.headers.range === 'string' ? req.headers.range : undefined;
+
+    if (range) {
+      const parts = range.replace(/bytes=/, '').split('-');
+      const start = parseInt(parts[0], 10);
+      const end = parts[1] ? parseInt(parts[1], 10) : fileSize - 1;
+
+      if (start >= fileSize || end >= fileSize) {
+        res.status(416).send('Requested range not satisfiable');
+        return;
+      }
+
+      const chunkSize = end - start + 1;
+      const file = createReadStream(filePath, { start, end });
+
+      res.writeHead(206, {
+        'Content-Range': `bytes ${start}-${end}/${fileSize}`,
+        'Accept-Ranges': 'bytes',
+        'Content-Length': chunkSize,
+        'Content-Type': 'audio/mpeg',
+        'Content-Disposition': 'inline',
+        'Cache-Control': 'no-store',
+      });
+
+      file.pipe(res);
+    } else {
+      // Không có header Range → trả cả file
+      res.writeHead(200, {
+        'Content-Length': fileSize,
+        'Content-Type': 'audio/mpeg',
+        'Accept-Ranges': 'bytes',
+        'Content-Disposition': 'inline',
+        'Cache-Control': 'no-store',
+      });
+
+      createReadStream(filePath).pipe(res);
+    }
   }
+  // @Public()
+  // @Get('album/:id')
+  // fetchTrackByAlbum(@Param('id', new ParseUUIDPipe()) id: string) {
+  //   return this.trackService.fetchTrackByAlbum(id);
+  // }
 }

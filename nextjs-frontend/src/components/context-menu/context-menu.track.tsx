@@ -6,6 +6,7 @@ import {
 } from "@/helper/context-menu/context-menu.track";
 
 import {
+  selectInLibrary,
   selectIsOpenContextMenuTrack,
   selectPosition,
   selectTemporaryTrack,
@@ -26,16 +27,25 @@ import { IoAddOutline, IoShareOutline } from "react-icons/io5";
 import { IoIosAddCircleOutline, IoIosRadio } from "react-icons/io";
 import { GoPeople } from "react-icons/go";
 import { LuListMusic } from "react-icons/lu";
-import { selectSession } from "@/lib/features/auth/auth.slice";
-import { TiTick } from "react-icons/ti";
+import {
+  selectSession,
+  setSessionActivity,
+} from "@/lib/features/auth/auth.slice";
+import { TiPinOutline, TiTick } from "react-icons/ti";
+import { user_activity_service } from "@/service/user-activity.service";
 
-const ContextMenuTrack = () => {
+interface IHTMLProps extends React.HTMLAttributes<HTMLDivElement> {
+  setIsOpenModalDeleteTrack: (value: boolean) => void;
+}
+
+const ContextMenuTrack = ({ setIsOpenModalDeleteTrack }: IHTMLProps) => {
   const session = useAppSelector(selectSession);
   const isPlay = useAppSelector(selectIsPlay);
   const isOpenContextMenuTrack = useAppSelector(selectIsOpenContextMenuTrack);
   const temporaryTrack = useAppSelector(selectTemporaryTrack);
   const waitTrackList = useAppSelector(selectWaitTrackList);
   const currentTrack = useAppSelector(selectCurrentTrack);
+  const inLibrary = useAppSelector(selectInLibrary);
 
   const position = useAppSelector(selectPosition);
   const dispatch = useAppDispatch();
@@ -43,7 +53,12 @@ const ContextMenuTrack = () => {
 
   // Handle opening the tab and calculating the position
   const handleCloseTab = () => {
-    dispatch(setOpenContextMenuTrack({ isOpenContextMenuTrack: false }));
+    dispatch(
+      setOpenContextMenuTrack({
+        isOpenContextMenuTrack: false,
+        inLibrary: false,
+      })
+    );
   };
 
   useEffect(() => {
@@ -109,8 +124,11 @@ const ContextMenuTrack = () => {
           play({
             waitTrackList: updatedList,
             currentTrack: temporaryTrack,
-            isInWaitlist: false,
-            playingSource: "track",
+
+            playingSource: {
+              in: "track",
+              before: "track",
+            },
           })
         );
         handleCloseTab();
@@ -191,6 +209,42 @@ const ContextMenuTrack = () => {
     (item) => item._id === temporaryTrack?._id
   );
 
+  const handleSubscribeTrack = async () => {
+    handleCloseTab();
+    if (!isLikeTrack) {
+      callApiSubscribeTrack();
+    } else {
+      if (inLibrary) {
+        handleConfirmDeleteTrack();
+      } else {
+        callApiSubscribeTrack();
+      }
+    }
+  };
+
+  const handleConfirmDeleteTrack = () => {
+    setIsOpenModalDeleteTrack(true);
+    handleCloseTab();
+  };
+
+  const callApiSubscribeTrack = async () => {
+    if (session && temporaryTrack) {
+      const res = await user_activity_service.subscribeTrack(session, {
+        trackId: temporaryTrack?._id,
+        quantity: 1,
+      });
+      if (res) {
+        const newTracks = isLikeTrack
+          ? session.user.tracks.filter(
+              (item) => item._id !== temporaryTrack._id
+            )
+          : [...session.user.tracks, temporaryTrack];
+
+        dispatch(setSessionActivity({ tracks: newTracks }));
+      }
+    }
+  };
+
   if (!isOpenContextMenuTrack) return null; // Ẩn menu nếu không mở
 
   return (
@@ -201,71 +255,73 @@ const ContextMenuTrack = () => {
         top: position?.y || 0,
         left: position?.x || 0,
       }}
-      className="bg-40 text-white shadow-lg rounded z-[10000] min-w-[300px] overflow-hidden p-1"
+      className="bg-40 text-white shadow-lg rounded overflow-hidden z-[10000] min-w-[300px] p-1"
     >
       <div className="flex flex-col bg-40 text-white">
-        <div className="flex gap-3 opacity-90   hover:opacity-100 hover:bg-hover  cursor-pointer py-3 px-4">
-          <div className="flex items-center text-white-06">
+        <div className="flex gap-3 opacity-90   hover:opacity-100 hover:bg-hover  cursor-pointer  py-3 px-3">
+          <div className="flex items-center text-white-08">
             <IoAddOutline size={20} />
           </div>
           <div>Thêm vào danh sách phát</div>
         </div>
-        {isLikeTrack ? (
-          <div className="flex gap-3 opacity-90   hover:opacity-100 hover:bg-hover  cursor-pointer py-3 px-4 items-center">
-            <div className="flex items-center bg-green-500 size-[20px] rounded-full relative">
-              <TiTick
-                size={15}
-                className="text-40 absolute top-[52%] left-1/2 -translate-1/2"
-              />
+        <div onClick={handleSubscribeTrack}>
+          {isLikeTrack ? (
+            <div className="flex gap-3 opacity-90   hover:opacity-100 hover:bg-hover  cursor-pointer  py-3 px-3 items-center">
+              <div className="flex items-center bg-green-base size-[20px] rounded-full relative">
+                <TiTick
+                  size={15}
+                  className="text-40 absolute top-[52%] left-1/2 -translate-1/2"
+                />
+              </div>
+              <div className="">Xóa khỏi bài hát đã thích của bạn</div>
             </div>
-            <div className="">Xóa khỏi bài hát đã thích của bạn</div>
-          </div>
-        ) : (
-          <div className="flex gap-3 opacity-90   hover:opacity-100 hover:bg-hover  cursor-pointer py-3 px-4">
-            <div className="flex items-center text-white-06 ">
-              <IoIosAddCircleOutline size={20} />
+          ) : (
+            <div className="flex gap-3 opacity-90   hover:opacity-100 hover:bg-hover  cursor-pointer  py-3 px-3">
+              <div className="flex items-center text-white-08 ">
+                <IoIosAddCircleOutline size={20} />
+              </div>
+              <div>Lưu vào Bài hát đã thích của bạn</div>
             </div>
-            <div>Lưu vào Bài hát đã thích của bạn</div>
-          </div>
-        )}
+          )}
+        </div>
         <div
-          className="flex gap-3 opacity-90   hover:opacity-100 hover:bg-hover  cursor-pointer py-3 px-4 "
+          className="flex gap-3 opacity-90   hover:opacity-100 hover:bg-hover  cursor-pointer  py-3 px-3 "
           onClick={() => handleAddWaitTrackList()}
         >
-          <div className="flex items-center text-white-06">
+          <div className="flex items-center text-white-08">
             <TbPlaylistAdd size={20} />
           </div>
           <div>Thêm vào danh sách chờ</div>
         </div>
-        <div className="flex gap-3 opacity-90   hover:opacity-100 hover:bg-hover  cursor-pointer py-3 px-4 border-t-[1px] border-70 border-solid">
-          <div className="flex items-center text-white-06">
+        <div className="flex gap-3 opacity-90   hover:opacity-100 hover:bg-hover  cursor-pointer  py-3 px-3 border-t-[1px] border-70 border-solid">
+          <div className="flex items-center text-white-08">
             <IoIosRadio size={20} />
           </div>
           <div>Chuyển đến radio theo bài hát</div>
         </div>
-        <div className="flex gap-3 opacity-90   hover:opacity-100 hover:bg-hover  cursor-pointer py-3 px-4 ">
-          <div className="flex items-center text-white-06">
+        <div className="flex gap-3 opacity-90   hover:opacity-100 hover:bg-hover  cursor-pointer  py-3 px-3 ">
+          <div className="flex items-center text-white-08">
             <GoPeople size={20} />
           </div>
           <div>Chuyển tới nghệ sĩ</div>
         </div>{" "}
-        <div className="flex gap-3 opacity-90   hover:opacity-100 hover:bg-hover  cursor-pointer py-3 px-4 ">
-          <div className="flex items-center text-white-06">
+        <div className="flex gap-3 opacity-90   hover:opacity-100 hover:bg-hover  cursor-pointer  py-3 px-3 ">
+          <div className="flex items-center text-white-08">
             <LuListMusic size={20} />
           </div>
           <div>Xem thông tin ghi công</div>
         </div>
-        <div className="flex gap-3 opacity-90   hover:opacity-100 hover:bg-hover  cursor-pointer py-3 px-4 border-t-[1px] border-70 border-solid ">
-          <div className="flex items-center text-white-06">
+        <div className="flex gap-3 opacity-90   hover:opacity-100 hover:bg-hover  cursor-pointer  py-3 px-3 border-t-[1px] border-70 border-solid ">
+          <div className="flex items-center text-white-08">
             <IoShareOutline size={20} />
           </div>
           <div>Chia sẽ</div>
         </div>
         <div
-          className="flex gap-3 opacity-90 hover:opacity-100 hover:bg-hover  cursor-pointer py-3 px-4 border-t-[1px] border-70 border-solid"
+          className="flex gap-3 opacity-90 hover:opacity-100 hover:bg-hover  cursor-pointer  py-3 px-3 border-t-[1px] border-70 border-solid"
           onClick={handleDeleteTrack}
         >
-          <div className="flex items-center text-white-06">
+          <div className="flex items-center text-white-08">
             <MdDeleteOutline />
           </div>
           <div>Xóa</div>

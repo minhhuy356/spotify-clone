@@ -177,7 +177,7 @@ const ScrollBar = (props: CustomScrollbarProps) => {
 
       {/* Thanh cuộn tùy chỉnh */}
       <div
-        className="absolute top-0 right-0 w-3 bg-transparent z-100"
+        className="absolute top-0 right-0 w-3 bg-transparent z-10"
         style={{
           height: `${trackHeight}px`,
           opacity: isHovered ? 1 : 0,

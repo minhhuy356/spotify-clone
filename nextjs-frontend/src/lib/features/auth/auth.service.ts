@@ -16,6 +16,7 @@ export const loginService = async (username: string, password: string) => {
     if (response) {
       // delete response.data.refresh_token;
       const res = await response.json();
+
       return res.data;
     }
   } catch (error) {
@@ -64,7 +65,6 @@ export const getNewAccessToken = async () => {
 
 export const getRefreshToken = async (access_token: string) => {
   try {
-    console.log(access_token);
     const response: any = await fetch(`${backendUrl}${api_auth.refresh}`, {
       method: "GET",
       credentials: "include", // ✅ Giúp trình duyệt lưu cookie
@@ -76,7 +76,7 @@ export const getRefreshToken = async (access_token: string) => {
 
     if (response) {
       const res = await response.json();
-      console.log(res);
+
       return res.data.refreshToken;
     }
   } catch (error) {

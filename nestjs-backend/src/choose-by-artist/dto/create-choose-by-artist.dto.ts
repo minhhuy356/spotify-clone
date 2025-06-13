@@ -14,13 +14,15 @@ export class CreateChooseByArtistsDto {
   artist: string;
 
   @IsString()
+  @IsOptional()
   chooseImgUrl?: string;
 
   @IsOptional()
   @IsString()
-  chooseTitle: string;
+  chooseTitle?: string;
 
   @IsObjectId()
+  @IsOptional()
   chooseTrack?: string;
 
   @IsOptional()

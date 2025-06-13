@@ -12,10 +12,9 @@ import {
   play,
   selectCurrentTime,
   selectCurrentTrack,
-  selectInWhere,
-  selectIsFooter,
-  selectIsInWaitlist,
   selectIsPlay,
+  selectListenFirst,
+  selectPlayingSource,
   selectWaitTrackList,
   setCurrentTime,
 } from "@/lib/features/tracks/tracks.slice";
@@ -29,6 +28,7 @@ import { api_track_artists, api_tracks, backendUrl } from "@/api/url";
 import { selectSession } from "@/lib/features/auth/auth.slice";
 import { track_service } from "@/service/track.service";
 import { track_artist_service } from "@/service/track-artist.service";
+import { user_daily_fetch_tracks_service } from "@/service/user-daily-fetched-tracks.service";
 
 interface IAudioPlayerProps {
   audioPlayerRef: any;
@@ -46,11 +46,10 @@ const AudioPlayer: React.FC<IAudioPlayerProps> = ({
   const session = useAppSelector(selectSession);
   const currentTrack = useAppSelector(selectCurrentTrack);
   const waitTrackList = useAppSelector(selectWaitTrackList);
-  const isFooter = useAppSelector(selectIsFooter);
-  const inWhere = useAppSelector(selectInWhere);
-  const isInWaitlist = useAppSelector(selectIsInWaitlist);
+  const playingSource = useAppSelector(selectPlayingSource);
   const isPlay = useAppSelector(selectIsPlay);
   const currentTime = useAppSelector(selectCurrentTime);
+  const listenFirst = useAppSelector(selectListenFirst);
   const seeking = useAppSelector(selectIsSeek);
   const dispatch = useAppDispatch();
 
@@ -96,7 +95,7 @@ const AudioPlayer: React.FC<IAudioPlayerProps> = ({
     const audio = audioPlayerRef.current;
 
     if (audio) {
-      if (isPlay) {
+      if (isPlay && listenFirst.modalListenFirst.isOpen === false) {
         const newVolume = localStorage.getItem("volume");
 
         if (newVolume) {
@@ -107,17 +106,61 @@ const AudioPlayer: React.FC<IAudioPlayerProps> = ({
         audio.pause();
       }
     }
-  }, [waitTrackList, isPlay]);
+  }, [waitTrackList, isPlay, listenFirst]);
 
-  const fetchWaitlistBasedOnGenre = async () => {
-    if (!isInWaitlist && currentTrack) {
-      const genres = currentTrack.genres.map((item) => item.name);
+  // const fetchWaitlistBasedOnGenre = async () => {
+  //   if (currentTrack) {
+  //     const genres = currentTrack.genres.map((item) => item.name);
+  //     const res = await track_artist_service.fetchWaitlistBasedOnGenre(
+  //       genres,
+  //       "some"
+  //     );
+  //     if (res) {
+  //       const dataFilter = res.filter((item) => item._id !== currentTrack._id);
 
-      const res = await track_artist_service.fetchWaitlistBasedOnGenre(
+  //       dispatch(
+  //         play({
+  //           waitTrackList: [currentTrack, ...dataFilter],
+  //           currentTrack: currentTrack,
+  //         })
+  //       );
+  //     }
+  //   }
+  // };
+
+  // const fetchWaitlistByArtist = async () => {
+  //   if (currentTrack) {
+  //     const artistId = playingSource._id;
+  //     const res = await track_artist_service.getTrackForArtist(
+  //       artistId,
+  //       "countPlay"
+  //     );
+  //     console.log(res);
+  //     if (res) {
+  //       const dataFilter = res.filter((item) => item._id !== currentTrack._id);
+
+  //       dispatch(
+  //         play({
+  //           waitTrackList: [...waitTrackList, ...dataFilter],
+  //           currentTrack: currentTrack,
+  //         })
+  //       );
+  //     }
+  //   }
+  // };
+
+  const fetchWaitlistBasedOnTrack = async () => {
+    if (currentTrack && session) {
+      const artistsId = currentTrack.artists.map((item) => item.artist._id);
+      const genres = currentTrack.genres.map((item) => item._id);
+      const res = await user_daily_fetch_tracks_service.fetchByTrack(
+        artistsId,
         genres,
-        "every"
+        "track.countPlay",
+        "desc",
+        4,
+        session?.access_token
       );
-
       if (res) {
         const dataFilter = res.filter((item) => item._id !== currentTrack._id);
 
@@ -125,7 +168,6 @@ const AudioPlayer: React.FC<IAudioPlayerProps> = ({
           play({
             waitTrackList: [currentTrack, ...dataFilter],
             currentTrack: currentTrack,
-            isInWaitlist: false,
           })
         );
       }
@@ -135,13 +177,16 @@ const AudioPlayer: React.FC<IAudioPlayerProps> = ({
   useEffect(() => {
     const audio = audioPlayerRef.current;
 
-    if (audio && currentTrack) {
+    if (playingSource.in === "album" || playingSource.in === "artist") return;
+
+    if (audio && currentTrack && waitTrackList) {
       const isLastTrack =
         waitTrackList.find((item) => item._id === currentTrack._id) ===
         waitTrackList[waitTrackList.length - 1];
 
-      if (inWhere.where === "track" && isLastTrack) {
-        fetchWaitlistBasedOnGenre();
+      if (isLastTrack) {
+        fetchWaitlistBasedOnTrack();
+        return;
       }
     }
   }, [currentTrack]);
@@ -169,7 +214,6 @@ const AudioPlayer: React.FC<IAudioPlayerProps> = ({
             play({
               waitTrackList: clone,
               currentTrack: currentTrack,
-              isInWaitlist: false,
             })
           )
         )
@@ -258,9 +302,7 @@ const AudioPlayer: React.FC<IAudioPlayerProps> = ({
   return (
     <div className=" min-w-[300px] flex justify-between items-center gap-2">
       <div
-        className={`${
-          isFooter ? "flex-col" : "flex-row max-w-[70vw] mb-0"
-        } flex items-center justify-center text-black  w-full transition-all duration-500 `}
+        className={` flex flex-col items-center justify-center text-black  w-full transition-all duration-500 `}
       >
         {currentTrack && (
           <audio
@@ -276,16 +318,14 @@ const AudioPlayer: React.FC<IAudioPlayerProps> = ({
         )}
 
         <div
-          className={`${
-            isFooter ? "mb-1" : "mb-0"
-          } flex items-center justify-center mb-1 gap-2 text-white`}
+          className={` flex items-center justify-center mb-1 gap-2 text-white`}
         >
           <MdSkipPrevious
             className="cursor-pointer"
             size={35}
             onClick={handlePreviousTrack}
           />
-          {isPlay ? (
+          {isPlay && listenFirst.modalListenFirst.isOpen === false ? (
             <BsPauseCircle
               className="cursor-pointer"
               size={35}

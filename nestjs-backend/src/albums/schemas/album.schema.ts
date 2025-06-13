@@ -20,6 +20,18 @@ export class Album {
   @Prop({ type: mongoose.Schema.Types.ObjectId, ref: Artist.name })
   releasedBy: ObjectId;
 
+  @Prop({ default: null })
+  addLibraryAt: Date;
+
+  @Prop({ default: null })
+  pinnedAt: Date;
+
+  @Prop({ default: '', required: false })
+  copyrightNotice: string;
+
+  @Prop({ default: '', required: false })
+  phonogramCopyright: string;
+
   @Prop({
     type: mongoose.Schema.Types.ObjectId,
     ref: User.name,

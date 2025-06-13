@@ -5,6 +5,7 @@ import { TbPlaylistAdd } from "react-icons/tb";
 import { SlUserFollow } from "react-icons/sl";
 import { useAppDispatch, useAppSelector } from "@/lib/hook";
 import {
+  selectInLibrary,
   selectIsOpenContextMenuArtist,
   selectPosition,
   selectTemporaryArtist,
@@ -22,15 +23,23 @@ import { IoIosClose, IoIosRadio } from "react-icons/io";
 import { IoShareOutline } from "react-icons/io5";
 import {
   selectSession,
+  setPinedAt,
   setSessionActivity,
 } from "@/lib/features/auth/auth.slice";
 import { sendRequest } from "@/api/api";
 import { api_user_activity, backendUrl } from "@/api/url";
 import store from "@/lib/store";
+import { user_activity_service } from "@/service/user-activity.service";
+import { RiPushpinLine } from "react-icons/ri";
 
-interface IHTMLProps extends React.HTMLAttributes<HTMLDivElement> {}
+interface IHTMLProps extends React.HTMLAttributes<HTMLDivElement> {
+  setIsOpenModalDeleteArtist: (value: boolean) => void;
+}
 
-const SubscribeArtistQueue: Array<{ artistId: string; quantity: number }> = [];
+const SubscribeArtistQueue: Array<{
+  artistId: string;
+  quantity: number;
+}> = [];
 let isProcessingQueue = false;
 
 const processSubscribeAritstQueue = async (session: any) => {
@@ -40,18 +49,7 @@ const processSubscribeAritstQueue = async (session: any) => {
     const action = SubscribeArtistQueue.shift();
     if (!action) continue;
     try {
-      await sendRequest<IBackendRes<IUserActivity>>({
-        url: `${backendUrl}${api_user_activity.artist}`,
-        method: "POST",
-        body: {
-          user: session?.user._id,
-          artist: action.artistId,
-          quantity: action.quantity,
-        },
-        headers: {
-          Authorization: `Bearer ${session?.access_token}`,
-        },
-      });
+      await user_activity_service.subscribeArtist(session, action);
     } catch (error) {
       console.error(
         `Error processing like for track ${action.artistId}:`,
@@ -62,19 +60,25 @@ const processSubscribeAritstQueue = async (session: any) => {
   isProcessingQueue = false;
 };
 
-const ContextMenuArtist = ({}: IHTMLProps) => {
+const ContextMenuArtist = ({ setIsOpenModalDeleteArtist }: IHTMLProps) => {
   const dispatch = useAppDispatch();
 
   const session = useAppSelector(selectSession);
   const position = useAppSelector(selectPosition);
   const temporaryArtist = useAppSelector(selectTemporaryArtist);
   const isOpenContextMenuArtist = useAppSelector(selectIsOpenContextMenuArtist);
+  const inLibrary = useAppSelector(selectInLibrary);
 
   const menuRef = useRef<HTMLDivElement | null>(null);
 
   // Handle opening the tab and calculating the position
   const handleCloseTab = () => {
-    dispatch(setOpenContextMenuArtist({ isOpenContextMenuArtist: false }));
+    dispatch(
+      setOpenContextMenuArtist({
+        isOpenContextMenuArtist: false,
+        inLibrary: false,
+      })
+    );
   };
 
   useEffect(() => {
@@ -135,21 +139,37 @@ const ContextMenuArtist = ({}: IHTMLProps) => {
     }
   }, [isOpenContextMenuArtist]);
 
+  const isLikeArtist = session?.user.artists.some(
+    (item) => item._id === temporaryArtist?._id
+  );
   const handleSubscribeArtist = async () => {
-    if (!session || !temporaryArtist) return;
-
     handleCloseTab();
 
-    const isSubscribed = session.user.artists.some(
-      (a) => a._id === temporaryArtist._id
-    );
-    const newArtists = isSubscribed
+    if (!isLikeArtist) {
+      callApiSubscribeArtist();
+    } else {
+      if (inLibrary) {
+        handleConfirmDeleteArtist();
+      } else {
+        callApiSubscribeArtist();
+      }
+    }
+  };
+
+  const handleConfirmDeleteArtist = () => {
+    setIsOpenModalDeleteArtist(true);
+    handleCloseTab();
+  };
+
+  const callApiSubscribeArtist = async () => {
+    if (!session || !temporaryArtist) return;
+    const newArtists = isLikeArtist
       ? session.user.artists.filter((item) => item._id !== temporaryArtist._id)
       : [...session.user.artists, temporaryArtist];
 
     SubscribeArtistQueue.push({
       artistId: temporaryArtist._id,
-      quantity: isSubscribed ? -1 : 1,
+      quantity: isLikeArtist ? -1 : 1,
     });
 
     if (!isProcessingQueue) {
@@ -159,20 +179,22 @@ const ContextMenuArtist = ({}: IHTMLProps) => {
     dispatch(
       setSessionActivity({ artists: newArtists, tracks: [], albums: [] })
     );
-
-    // **Lấy lại session mới từ Redux rồi lưu vào localStorage**
-    setTimeout(() => {
-      const newSession = JSON.stringify(store.getState().auth.session); // 🔹 Lấy lại session mới từ Redux
-
-      localStorage.setItem("session", newSession);
-    }, 100);
   };
 
-  const isLikeArtist = session?.user.artists.some(
-    (item) => item._id === temporaryArtist?._id
-  );
+  if (!isOpenContextMenuArtist || !temporaryArtist || !session) return null; // Ẩn menu nếu không mở
 
-  if (!isOpenContextMenuArtist) return null; // Ẩn menu nếu không mở
+  const handlePin = async (pinned: boolean) => {
+    handleCloseTab();
+    const res = await user_activity_service.pin<IArtist>(
+      temporaryArtist?._id,
+      session?.access_token,
+      "artist",
+      pinned
+    );
+    if (res) {
+      dispatch(setPinedAt({ artist: res }));
+    }
+  };
 
   return (
     <div
@@ -182,12 +204,12 @@ const ContextMenuArtist = ({}: IHTMLProps) => {
         top: position?.y || 0,
         left: position?.x || 0,
       }}
-      className=" bg-40 text-white shadow-lg rounded-lg z-[10000]"
+      className=" bg-40 text-white shadow-lg rounded overflow-hidden z-[10000]"
     >
-      <div className="flex flex-col bg-40 text-white">
+      <div className="flex flex-col bg-40 text-white p-1">
         {isLikeArtist ? (
           <div
-            className="flex gap-3 opacity-90   hover:opacity-100 hover:bg-hover  cursor-pointer py-3 px-5"
+            className="flex gap-3 opacity-90   hover:opacity-100 hover:bg-hover  cursor-pointer py-3 px-3"
             onClick={handleSubscribeArtist}
           >
             <div className="flex items-center scale-[1.7]">
@@ -197,42 +219,66 @@ const ContextMenuArtist = ({}: IHTMLProps) => {
           </div>
         ) : (
           <div
-            className="flex gap-3 opacity-90   hover:opacity-100 hover:bg-hover  cursor-pointer py-3 px-5"
+            className="flex gap-3 opacity-90   hover:opacity-100 hover:bg-hover  cursor-pointer py-3 px-3"
             onClick={handleSubscribeArtist}
           >
-            <div className="flex items-center text-white-06">
+            <div className="flex items-center text-white-08">
               <SlUserFollow size={20} />
             </div>
             <div>Theo dõi</div>
           </div>
         )}
-
-        <div className="flex gap-3 opacity-90   hover:opacity-100 hover:bg-hover  cursor-pointer py-3 px-5">
-          <div className="flex items-center text-white-06">
+        <div className="flex gap-3 opacity-90   hover:opacity-100 hover:bg-hover  cursor-pointer py-3 px-3">
+          <div className="flex items-center text-white-08">
             <MdBlock size={20} />
           </div>
           <div>Không phát nghệ sĩ này</div>
-        </div>
-        <div className="flex gap-3 opacity-90   hover:opacity-100 hover:bg-hover  cursor-pointer py-3 px-5">
-          <div className="flex items-center text-white-06">
+        </div>{" "}
+        {inLibrary && (
+          <>
+            {!temporaryArtist.pinnedAt ? (
+              <div
+                className="flex gap-3 opacity-90   hover:opacity-100 hover:bg-hover  cursor-pointer py-3 px-3 border-t-[1px] border-70 border-solid"
+                onClick={() => handlePin(true)}
+              >
+                <div className="flex items-center text-white-08">
+                  <RiPushpinLine size={20} />
+                </div>
+                <div>Ghim nghệ sĩ</div>
+              </div>
+            ) : (
+              <div
+                className="flex gap-3 opacity-90   hover:opacity-100 hover:bg-hover  cursor-pointer py-3 px-3 border-t-[1px] border-70 border-solid"
+                onClick={() => handlePin(false)}
+              >
+                <div className="flex items-center text-green-500">
+                  <RiPushpinLine size={20} />
+                </div>
+                <div>Bỏ ghim nghệ sĩ</div>
+              </div>
+            )}
+          </>
+        )}
+        <div className="flex gap-3 opacity-90   hover:opacity-100 hover:bg-hover  cursor-pointer py-3 px-3">
+          <div className="flex items-center text-white-08">
             <IoIosRadio size={20} />
           </div>
           <div>Chuyển đến radio theo nghệ sĩ</div>
         </div>
-        <div className="flex gap-3 opacity-90   hover:opacity-100 hover:bg-hover  cursor-pointer py-3 px-5">
-          <div className="flex items-center text-white-06">
+        <div className="flex gap-3 opacity-90   hover:opacity-100 hover:bg-hover  cursor-pointer py-3 px-3">
+          <div className="flex items-center text-white-08">
             <MdOutlineReportGmailerrorred size={20} />
           </div>
           <div>Báo cáo</div>
         </div>
-        <div className="flex gap-3 opacity-90   hover:opacity-100 hover:bg-hover  cursor-pointer py-3 px-5">
-          <div className="flex items-center text-white-06">
+        <div className="flex gap-3 opacity-90   hover:opacity-100 hover:bg-hover  cursor-pointer py-3 px-3">
+          <div className="flex items-center text-white-08">
             <IoShareOutline size={20} />
           </div>
           <div>Chia sẽ</div>
         </div>
-        <div className="flex gap-3 opacity-90 hover:opacity-100 hover:bg-hover  cursor-pointer py-3 px-5 border-t-[1px] border-70 border-solid">
-          <div className="flex items-center text-white-06">
+        <div className="flex gap-3 opacity-90 hover:opacity-100 hover:bg-hover  cursor-pointer py-3 px-3 border-t-[1px] border-70 border-solid">
+          <div className="flex items-center text-white-08">
             <MdComputer size={20} />
           </div>
           <div>Mở trong ứng dụng máy tính</div>

@@ -37,6 +37,12 @@ const populate = [
   {
     path: 'tracks',
   },
+  {
+    path: 'playlists',
+  },
+  {
+    path: 'folders',
+  },
 ];
 
 @Injectable()
@@ -44,7 +50,7 @@ export class UserActivitysService {
   constructor(
     @InjectModel(UserActivity.name)
     private userActivityModel: SoftDeleteModel<UserActivityDocument>,
-    private albumservice: AlbumsService,
+    private albumService: AlbumsService,
     private trackService: TracksService,
     private artistService: ArtistsService,
   ) {}
@@ -63,175 +69,6 @@ export class UserActivitysService {
 
   async create(user: string) {
     return await this.userActivityModel.create({ user });
-  }
-
-  async SubscribeTrack(
-    createUserActivityDto: CreateUserActivitysDto,
-    user: IUser,
-  ) {
-    const { quantity, track } = createUserActivityDto;
-
-    //Check track existed or not
-    await this.trackService.findById(createUserActivityDto.track.toString());
-
-    //Update count UserActivity for track
-    await this.trackService.increaseLike(track.toString(), quantity, user);
-
-    //Check user existed or not in UserActivity schema
-    const existingUser = await this.userActivityModel.findOne({
-      user: user._id,
-    });
-
-    if (existingUser) {
-      // 🛠 Kiểm tra xem track đã có trong danh sách chưa
-      const trackExists = await this.userActivityModel.findOne({
-        user: user._id,
-        tracks: track, // Kiểm tra track đã tồn tại trong mảng `tracks`
-      });
-
-      if (!trackExists && quantity === 1) {
-        // Nếu track chưa có và quantity = 1, thêm vào
-        const result = await this.userActivityModel.updateOne(
-          { user: user._id },
-          { $push: { tracks: track }, updatedBy: user._id, user: user._id },
-        );
-        console.log(1);
-        return result;
-      } else if (trackExists && quantity === -1) {
-        // Nếu track có và quantity = -1, Xóa !
-        const result = await this.userActivityModel.updateOne(
-          { user: user._id },
-          { $pull: { tracks: track }, updatedBy: user._id, user: user._id },
-        );
-        console.log(-1);
-        return result;
-      }
-    } else {
-      const result = await this.userActivityModel.create({
-        tracks: [track],
-        user: user._id,
-      });
-      return result;
-    }
-  }
-
-  async SubscribeArtist(
-    createUserActivityDto: CreateUserActivitysDto,
-    user: IUser,
-  ) {
-    const { quantity, artist } = createUserActivityDto;
-
-    //Check artist existed or not
-    await this.artistService.findById(createUserActivityDto.artist.toString());
-
-    //Update count UserActivity for artist
-    await this.artistService.updateCountLike(artist.toString(), quantity, user);
-
-    //Check user existed or not in UserActivity schema
-    const existingUser = await this.userActivityModel.findOne({
-      user: user._id,
-    });
-
-    if (existingUser) {
-      // 🛠 Kiểm tra xem artist đã có trong danh sách chưa
-      const trackExists = await this.userActivityModel.findOne({
-        user: user._id,
-        artists: artist, // Kiểm tra artist đã tồn tại trong mảng `artists`
-      });
-
-      if (!trackExists && quantity === 1) {
-        // Nếu artist chưa có và quantity = 1, thêm vào
-        const result = await this.userActivityModel.updateOne(
-          { user: user._id },
-          { $push: { artists: artist }, updatedBy: user._id },
-        );
-      } else if (trackExists && quantity === -1) {
-        // Nếu artist có và quantity = -1, Xóa !
-        const result = await this.userActivityModel.updateOne(
-          { user: user._id },
-          { $pull: { artists: artist }, updatedBy: user._id },
-        );
-      }
-    } else {
-      const result = await this.userActivityModel.create({
-        artists: [artist],
-        user: user._id,
-      });
-    }
-    return await this.findById(user._id);
-  }
-
-  async SubscribeAlbum(
-    createUserActivityDto: CreateUserActivitysDto,
-    user: IUser,
-  ) {
-    const { quantity, album } = createUserActivityDto;
-
-    //Check artist existed or not
-    await this.albumservice.findById(createUserActivityDto.album.toString());
-
-    //Update count UserActivity for artist
-    await this.albumservice.updateCountLike(album.toString(), quantity, user);
-
-    //Check user existed or not in UserActivity schema
-    const existingUser = await this.userActivityModel.findOne({
-      user: user._id,
-    });
-
-    if (existingUser) {
-      const trackExists = await this.userActivityModel.findOne({
-        user: user._id,
-        albums: album,
-      });
-
-      if (!trackExists && quantity === 1) {
-        const result = await this.userActivityModel.updateOne(
-          { user: user._id },
-          { $push: { albums: album }, updatedBy: user._id },
-        );
-        return result;
-      } else if (trackExists && quantity === -1) {
-        const result = await this.userActivityModel.updateOne(
-          { user: user._id },
-          { $pull: { albums: album }, updatedBy: user._id },
-        );
-        return result;
-      }
-    } else {
-      const result = await this.userActivityModel.create({
-        albums: [album],
-        user: user._id,
-      });
-      return result;
-    }
-  }
-
-  async UpdateFolder(folderId: string, userId: string, quantity: number) {
-    if (quantity === 1) {
-      return await this.userActivityModel.updateOne(
-        { user: userId },
-        { $push: { folders: folderId }, updatedBy: userId },
-      );
-    } else {
-      return await this.userActivityModel.updateOne(
-        { user: userId },
-        { $pull: { folders: folderId }, updatedBy: userId },
-      );
-    }
-  }
-
-  async UpdatePlaylist(playlistId: string, userId: string, quantity: number) {
-    if (quantity === 1) {
-      return await this.userActivityModel.updateOne(
-        { user: userId },
-        { $push: { playlists: playlistId }, updatedBy: userId },
-      );
-    } else {
-      return await this.userActivityModel.updateOne(
-        { user: userId },
-        { $pull: { playlists: playlistId }, updatedBy: userId },
-      );
-    }
   }
 
   async findAll(current: number, pageSize: number, qs: string) {
@@ -339,7 +176,7 @@ export class UserActivitysService {
       },
     );
 
-    return result;
+    if (result) return await this.userActivityModel.findById(id);
   }
 
   async remove(id: string, user: IUser) {
@@ -367,5 +204,204 @@ export class UserActivitysService {
     };
 
     return result;
+  }
+
+  async SubscribeTrack(
+    createUserActivityDto: CreateUserActivitysDto,
+    user: IUser,
+  ) {
+    const { quantity, track } = createUserActivityDto;
+
+    // Kiểm tra track tồn tại
+    await this.trackService.findById(track.toString());
+
+    // Cập nhật số lượng user activity cho track
+    await this.trackService.increaseLike(track.toString(), quantity, user);
+
+    // Kiểm tra user đã tồn tại trong UserActivity schema
+    const existingUser = await this.userActivityModel.findOne({
+      user: user._id,
+    });
+
+    if (existingUser) {
+      // Kiểm tra track đã có trong danh sách tracks chưa
+      const trackUpdate =
+        quantity === 1
+          ? { $push: { tracks: track } } // Thêm track mới
+          : quantity === -1
+            ? { $pull: { tracks: track } } // Xóa track
+            : null;
+
+      if (trackUpdate) {
+        const result = await this.userActivityModel.updateOne(
+          { user: user._id },
+          { ...trackUpdate, updatedBy: user._id, user: user._id },
+        );
+
+        if (result) {
+          return await this.trackService.updateAddLibrary(
+            track.toString(),
+            quantity === -1 ? null : new Date(),
+            user,
+          );
+        }
+      }
+    } else {
+      // Nếu user không tồn tại trong UserActivity, tạo mới
+      const result = await this.userActivityModel.create({
+        tracks: [track],
+        user: user._id,
+      });
+
+      if (result) {
+        return await this.trackService.updateAddLibrary(
+          track.toString(),
+          new Date(),
+          user,
+        );
+      }
+    }
+  }
+
+  async SubscribeArtist(
+    createUserActivityDto: CreateUserActivitysDto,
+    user: IUser,
+  ) {
+    const { quantity, artist } = createUserActivityDto;
+
+    // Check if artist exists
+    await this.artistService.findById(artist.toString());
+
+    // Update count UserActivity for artist
+    await this.artistService.updateCountLike(artist.toString(), quantity, user);
+
+    // Check if user exists in UserActivity schema
+    const existingUser = await this.userActivityModel.findOne({
+      user: user._id,
+    });
+
+    if (existingUser) {
+      // Check if the artist is already in the user's activity
+      const artistUpdate =
+        quantity === 1
+          ? { $push: { artists: artist } } // Add artist
+          : quantity === -1
+            ? { $pull: { artists: artist } } // Remove artist
+            : null;
+
+      if (artistUpdate) {
+        const result = await this.userActivityModel.updateOne(
+          { user: user._id },
+          { ...artistUpdate, updatedBy: user._id, user: user._id },
+        );
+
+        if (result) {
+          return await this.artistService.updateAddLibrary(
+            artist.toString(),
+            quantity === -1 ? null : new Date(),
+            user,
+          );
+        }
+      }
+    } else {
+      // Create a new user activity if it doesn't exist
+      const result = await this.userActivityModel.create({
+        artists: [artist],
+        user: user._id,
+      });
+
+      if (result) {
+        return await this.artistService.updateAddLibrary(
+          artist.toString(),
+          new Date(),
+          user,
+        );
+      }
+    }
+  }
+
+  async SubscribeAlbum(
+    createUserActivityDto: CreateUserActivitysDto,
+    user: IUser,
+  ) {
+    const { quantity, album } = createUserActivityDto;
+
+    // Check if album exists
+    await this.albumService.findById(album.toString());
+
+    // Update count UserActivity for album
+    await this.albumService.updateCountLike(album.toString(), quantity, user);
+
+    // Check if user exists in UserActivity schema
+    const existingUser = await this.userActivityModel.findOne({
+      user: user._id,
+    });
+
+    if (existingUser) {
+      // Check if the album is already in the user's activity
+      const albumUpdate =
+        quantity === 1
+          ? { $push: { albums: album } } // Add album
+          : quantity === -1
+            ? { $pull: { albums: album } } // Remove album
+            : null;
+
+      if (albumUpdate) {
+        const result = await this.userActivityModel.updateOne(
+          { user: user._id },
+          { ...albumUpdate, updatedBy: user._id, user: user._id },
+        );
+
+        if (result) {
+          return await this.albumService.updateAddLibrary(
+            album.toString(),
+            quantity === -1 ? null : new Date(),
+            user,
+          );
+        }
+      }
+    } else {
+      // Create a new user activity if it doesn't exist
+      const result = await this.userActivityModel.create({
+        albums: [album],
+        user: user._id,
+      });
+
+      if (result) {
+        return await this.albumService.updateAddLibrary(
+          album.toString(),
+          new Date(),
+          user,
+        );
+      }
+    }
+  }
+
+  async UpdateFolder(folderId: string, userId: string, quantity: number) {
+    if (quantity === 1) {
+      return await this.userActivityModel.updateOne(
+        { user: userId },
+        { $push: { folders: folderId }, updatedBy: userId },
+      );
+    } else {
+      return await this.userActivityModel.updateOne(
+        { user: userId },
+        { $pull: { folders: folderId }, updatedBy: userId },
+      );
+    }
+  }
+
+  async UpdatePlaylist(playlistId: string, userId: string, quantity: number) {
+    if (quantity === 1) {
+      return await this.userActivityModel.updateOne(
+        { user: userId },
+        { $push: { playlists: playlistId }, updatedBy: userId },
+      );
+    } else {
+      return await this.userActivityModel.updateOne(
+        { user: userId },
+        { $pull: { playlists: playlistId }, updatedBy: userId },
+      );
+    }
   }
 }

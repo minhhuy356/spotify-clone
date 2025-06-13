@@ -41,8 +41,8 @@ export class TrackArtistsController {
   }
 
   @Public()
-  @Post('top')
-  getTop(
+  @Post('genres-name')
+  get(
     @Body()
     body: {
       genres: string[];
@@ -50,7 +50,7 @@ export class TrackArtistsController {
       matchMode?: 'every' | 'some';
     },
   ) {
-    return this.TrackArtistService.findAllByGenres(body);
+    return this.TrackArtistService.findByGenresName(body);
   }
 
   @Public()
@@ -91,5 +91,16 @@ export class TrackArtistsController {
   @ResponseMessage('Delete by id')
   remove(@Param('id') id: string, @User() user: IUser) {
     return this.TrackArtistService.remove(id, user);
+  }
+
+  @Public()
+  @Post('tag/:id')
+  @ResponseMessage('Fetch track by Tag')
+  findAllTrackByTag(
+    @Param('id') tagId: string,
+    @Query('sortBy') sortBy?: string,
+    @Body('takenTracksId') takenTracksId?: string[],
+  ) {
+    return this.TrackArtistService.findTrackByTag(tagId, sortBy, takenTracksId);
   }
 }

@@ -44,13 +44,14 @@ export class AuthService {
   }
 
   async login(user: IUser, response: Response) {
-    const { _id, name, email, roles } = user;
+    const { _id, name, email, roles, imgUrl } = user;
 
     const payload = {
       sub: 'token login',
       iss: 'from server',
       _id,
       name,
+      imgUrl,
       email,
       roles,
     };
@@ -72,7 +73,7 @@ export class AuthService {
       _id.toString(),
     );
 
-    const { tracks, artists, albums } = userActivity;
+    const { tracks, artists, albums, playlists, folders } = userActivity;
 
     const tracksWithArtist = (
       await Promise.all(
@@ -87,11 +88,15 @@ export class AuthService {
       refresh_token: refresh_token,
       user: {
         _id,
+        name,
+        imgUrl,
         email,
         roles,
         tracks: tracksWithArtist,
         artists,
         albums,
+        playlists,
+        folders,
       },
     };
   }
@@ -125,16 +130,16 @@ export class AuthService {
       // Tìm user dựa vào refresh token hoặc email
       const user = await this.usersService.findUserByToken(refresh_token);
 
-      console.log(refresh_token);
-
       if (user) {
-        const { _id, name, email, roles } = user;
+        const { _id, name, email, roles, imgUrl } = user;
 
         const payload = {
           sub: 'token login',
           iss: 'from server',
           _id,
           email,
+          name,
+          imgUrl,
           roles,
         };
 
@@ -155,7 +160,7 @@ export class AuthService {
           _id.toString(),
         );
 
-        const { tracks, artists, albums } = userActivity;
+        const { tracks, artists, albums, playlists, folders } = userActivity;
 
         return {
           result: {
@@ -164,11 +169,14 @@ export class AuthService {
             user: {
               _id,
               name,
+              imgUrl,
               email,
               roles,
               tracks,
               artists,
               albums,
+              playlists,
+              folders,
             },
           },
         };

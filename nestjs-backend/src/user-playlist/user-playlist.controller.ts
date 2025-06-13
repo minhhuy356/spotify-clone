@@ -17,7 +17,7 @@ import { CreateUserPlaylistsDto } from './dto/create-user-playlist.dto';
 import { UpdateUserPlaylistsDto } from './dto/update-user-playlist.dto';
 import { UserPlaylistsService } from './user-playlist.service';
 
-@Controller('playlist-user')
+@Controller('user-playlist')
 export class UserPlaylistsController {
   constructor(private readonly userPlaylistService: UserPlaylistsService) {}
 

@@ -7,7 +7,7 @@ import {
   url_api_artists,
   url_api_monthly_listeners,
 } from "@/api/url";
-import MainArtist from "./main.artist";
+import MainArtist from "./main/artist.main";
 import { track_artist_service } from "@/service/track-artist.service";
 import { artist_service } from "@/service/artist.service";
 import { monthly_listener_service } from "@/service/monthly-listener.service";

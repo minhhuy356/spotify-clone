@@ -5,11 +5,9 @@ import UploadFile from "@/components/upload/upload.file";
 import SelectSearchable, {
   OptionType,
 } from "@/components/select/select.searchable";
-import TextFieldCustom from "@/components/input/input.text";
 import { DatePicker } from "@mui/x-date-pickers";
 import SelectNormal from "@/components/select/select.normal";
 import Button, { initialStatus, IStatus } from "@/components/button/button";
-import { sendRequest, sendRequestFile } from "@/api/api";
 
 import { IArtist, IArtistTypeDetail, IGenres, ITrack } from "@/types/data";
 import { useAppDispatch, useAppSelector } from "@/lib/hook";
@@ -39,6 +37,8 @@ import {
   url_disk_preview,
 } from "@/api/url";
 import { track_artist_service } from "@/service/track-artist.service";
+import { uploadFile } from "@/service/upload.service";
+import InputTextFieldForAdmin from "@/components/input/admin/input.text";
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -197,27 +197,6 @@ const Upload = () => {
   //   }
   // }, [value, trackUpload]);
 
-  const uploadFile = async (file: File | null, folderType: string) => {
-    if (!file) return null;
-
-    const formData = new FormData();
-    formData.append("file", file);
-
-    const res = await sendRequestFile<
-      IBackendRes<{ fileName: string; mimeType: string }>
-    >({
-      url: `${backendUrl}${api_files.upload}`,
-      method: "POST",
-      body: formData,
-      headers: {
-        Authorization: `Bearer ${session?.access_token}`,
-        folder_type: folderType,
-        delay: 1000,
-      },
-    });
-    return res.data;
-  };
-
   const handleSubmit = async (): Promise<void> => {
     if (!session) return;
 
@@ -230,19 +209,20 @@ const Upload = () => {
     );
 
     if (res) {
-      await Promise.all([
-        uploadFile(info.audio, disk_tracks.audios),
-        uploadFile(info.video, disk_tracks.videos),
-        uploadFile(info.img, disk_tracks.images),
+      const isUpload = await Promise.all([
+        uploadFile(info.audio, disk_tracks.audios, session.access_token),
+        uploadFile(info.video, disk_tracks.videos, session.access_token),
+        uploadFile(info.img, disk_tracks.images, session.access_token),
       ]);
+      if (isUpload) {
+        // Reset form về ban đầu
+        setInfo(initialTrackNew);
+        setResetFileImage(true);
+        setResetFileVideo(true);
+        setResetFileAudio(true);
 
-      // Reset form về ban đầu
-      setInfo(initialTrackNew);
-      setResetFileImage(true);
-      setResetFileVideo(true);
-      setResetFileAudio(true);
-
-      setStatus({ pending: false, success: true, error: false });
+        setStatus({ pending: false, success: true, error: false });
+      }
     } else {
       setStatus({ pending: false, success: false, error: true });
     }
@@ -286,9 +266,9 @@ const Upload = () => {
               <div className="">
                 <div className=" flex flex-col gap-3 bg-base">
                   <div className=" flex gap-3 relative bg-base">
-                    <TextFieldCustom
+                    <InputTextFieldForAdmin
                       title="Tên"
-                      value={info.title}
+                      value={info.title ? info.title : ""}
                       onChange={(value) => handleChange("title", value)}
                     />
                     <SelectNormal
@@ -438,9 +418,9 @@ const Upload = () => {
                         );
                       })}
                   </div>
-                  <div className="flex gap-5 bg-base"></div>
-                  <div className="flex gap-4 w-full">
-                    <div className="flex w-full gap-4">
+
+                  <div className="flex gap-4 w-full bg-base">
+                    <div className="flex w-full gap-4 bg-base">
                       <DatePicker
                         className="!w-full"
                         label="Ngày phát hành"
@@ -512,6 +492,7 @@ const Upload = () => {
                             },
                         }}
                       />
+
                       <SelectSearchable
                         value={optionGenres.filter((option) =>
                           info.genres.includes(option.value)

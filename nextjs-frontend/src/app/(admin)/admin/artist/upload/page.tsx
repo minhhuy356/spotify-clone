@@ -2,7 +2,7 @@
 import countryData from "@/contants/data.country";
 
 import InputTextField from "@/components/input/input.text";
-import ResizableTextField from "@/components/input/input.text.area";
+import ResizableTextField from "@/components/input/admin/input.text.area";
 import SelectNormal, { OptionType } from "@/components/select/select.normal";
 import UploadFile from "@/components/upload/upload.file";
 import { useAppSelector } from "@/lib/hook";
@@ -21,6 +21,7 @@ import {
   url_api_artists,
 } from "@/api/url";
 import { artist_service } from "@/service/artist.service";
+import InputTextFieldForAdmin from "@/components/input/admin/input.text";
 
 export interface INewArtist {
   stageName: string;
@@ -108,12 +109,12 @@ const Upload = () => {
     <div className="w-full max-w-[900px]">
       <div className="flex flex-col gap-3 bg-base py-4">
         <div className="flex gap-3 bg-inherit">
-          <InputTextField
+          <InputTextFieldForAdmin
             title="Nghệ danh"
             value={artist.stageName}
             onChange={(value) => handleChange("stageName", value)}
           />
-          <InputTextField
+          <InputTextFieldForAdmin
             title="Tên thật"
             value={artist.realName}
             onChange={(value) => handleChange("realName", value)}
@@ -201,7 +202,7 @@ const Upload = () => {
             />
           </div>
         </div>
-        <ResizableTextField
+        <InputTextFieldForAdmin
           title="Mô tả"
           value={artist.description}
           onChange={(value) => handleChange("description", value)}

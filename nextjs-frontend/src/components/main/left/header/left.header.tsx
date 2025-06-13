@@ -4,6 +4,10 @@ import ChooseLibrary from "./left.chose-library";
 import SearchSortLibrary from "./left.search-sort";
 import { ChooseLibraryBy } from "../left.main";
 import { IoIosAdd } from "react-icons/io";
+import DialogCreateFolder from "@/components/dialog/dialog.create-folder";
+import { setOpenDialogCreateFolder } from "@/lib/features/local/local.slice";
+import { useAppDispatch } from "@/lib/hook";
+import { useRef, useState } from "react";
 
 interface IProps {
   leftWidth: number;
@@ -18,6 +22,25 @@ const LeftHeader = ({
   chooseLibraryBy,
   setChooseLibraryBy,
 }: IProps) => {
+  const dispatch = useAppDispatch();
+  const [isDislogCreateFolderOpen, setIsDislogCreateFolderOpen] =
+    useState<boolean>(false); // Trạng thái menu
+  const buttonCreateFolderRef = useRef<HTMLDivElement | null>(null);
+
+  const handleOpenDialogCreateFolder = (event: React.MouseEvent) => {
+    const position = {
+      x: event.clientX,
+      y: event.clientY,
+    };
+    setIsDislogCreateFolderOpen(!isDislogCreateFolderOpen);
+    dispatch(
+      setOpenDialogCreateFolder({
+        isOpenDialogCreateFolder: !isDislogCreateFolderOpen,
+        position,
+      })
+    );
+  };
+
   return (
     <div className="py-4 px-4 flex flex-col gap-4 ">
       <div
@@ -49,12 +72,24 @@ const LeftHeader = ({
           className={`${
             leftWidth < hardLeftWidth ? "hidden" : ""
           } flex items-center gap-4 `}
+          onClick={(e) => handleOpenDialogCreateFolder(e)}
         >
-          <div className=" gap-[4px]  flex items-center xl:px-4 xl:py-1  p-2  bg-40 rounded-full cursor-pointer ">
-            <IoIosAdd size={20} className="scale-150 " />
+          <div
+            className=" gap-[4px]  flex items-center xl:px-4 xl:py-2  p-2  bg-40 rounded-full cursor-pointer "
+            ref={buttonCreateFolderRef}
+            onClick={() => setIsDislogCreateFolderOpen(true)}
+          >
+            <IoIosAdd
+              size={20}
+              className={`scale-150 ${
+                isDislogCreateFolderOpen
+                  ? "rotate-45 text-green-500"
+                  : "rotate-0"
+              } transition-all duration-300`}
+            />
             <span className="text-white xl:block hidden">Tạo </span>
           </div>
-          <FaArrowRight size={20} />
+          {/* <FaArrowRight size={20} /> */}
         </div>
       </div>
       {!(leftWidth < hardLeftWidth) && (
@@ -66,6 +101,12 @@ const LeftHeader = ({
           <SearchSortLibrary />
         </>
       )}
+
+      <DialogCreateFolder
+        anchorRef={buttonCreateFolderRef}
+        isOpen={isDislogCreateFolderOpen}
+        setIsOpen={setIsDislogCreateFolderOpen}
+      />
     </div>
   );
 };

@@ -29,6 +29,10 @@ export class CreateTracksDto {
   @IsOptional()
   videoUrl: string;
 
+  @IsString()
+  @IsOptional()
+  videoListenFirstUrl: string;
+
   @IsOptional()
   @IsMongoId()
   user: ObjectId;
@@ -36,6 +40,10 @@ export class CreateTracksDto {
   @IsArray()
   @IsMongoId({ each: true })
   genres: ObjectId[];
+
+  @IsArray()
+  @IsMongoId({ each: true })
+  tags: ObjectId[];
 
   @IsString()
   @IsOptional()

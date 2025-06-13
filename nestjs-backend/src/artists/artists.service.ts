@@ -8,12 +8,14 @@ import { UpdateArtistsDto } from './dto/update-artists.dto';
 import { IUser } from '@/users/users.interface';
 
 import aqp from 'api-query-params';
+import { ChooseByArtistsService } from '@/choose-by-artist/choose-by-artist.service';
 
 @Injectable()
 export class ArtistsService {
   constructor(
     @InjectModel(Artist.name)
     private artistModel: SoftDeleteModel<ArtistDocument>,
+    private chooseByArtistService: ChooseByArtistsService,
   ) {}
 
   hashPassword = (password: string) => {
@@ -46,9 +48,10 @@ export class ArtistsService {
         'Create new Artist failed',
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
+    } else {
+      await this.chooseByArtistService.create(result._id.toString(), user);
+      return result;
     }
-
-    return result;
   }
 
   async findAll(current: number, pageSize: number, qs: string) {
@@ -102,8 +105,17 @@ export class ArtistsService {
         },
       },
     );
+    if (result) return await this.artistModel.findById(id);
+  }
+  async updateAddLibrary(id: string, date: Date | null, user: IUser) {
+    const result = await this.artistModel.updateOne(
+      { _id: id },
+      {
+        addLibraryAt: date,
+      },
+    );
 
-    return result;
+    if (result) return await this.artistModel.findById(id);
   }
 
   async remove(id: string, user) {

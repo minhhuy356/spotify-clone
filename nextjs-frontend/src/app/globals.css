@@ -2,6 +2,7 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+  overflow: hidden;
 }
 
 @import "tailwindcss";
@@ -17,14 +18,35 @@ body {
   --color-60: rgb(60, 60, 60);
   --color-70: rgb(70, 70, 70);
   --color-80: rgb(80, 80, 80);
+  --color-90: rgb(90, 90, 90);
+  --color-100: rgb(100, 100, 100);
+  --color-110: rgb(110, 110, 110);
+  --color-120: rgb(120, 120, 120);
   --color-hover-not-click: rgba(70, 70, 70, 0.5);
   --color-hover: rgb(70, 70, 70);
   --color-selected: rgb(90, 90, 90);
   --color-tab: rgb(50, 50, 50);
+  --color-white-01: rgba(255, 255, 255, 0.1);
+  --color-white-02: rgba(255, 255, 255, 0.2);
   --color-white-04: rgba(255, 255, 255, 0.4);
   --color-white-05: rgba(255, 255, 255, 0.5);
   --color-white-06: rgba(255, 255, 255, 0.6);
+  --color-white-07: rgba(255, 255, 255, 0.7);
   --color-white-08: rgba(255, 255, 255, 0.8);
+  --color-white-09: rgba(255, 255, 255, 0.9);
+
+  --color-card-image: rgba(48, 48, 48, 0.1);
+
+  --color-black-005: rgba(0, 0, 0, 0.05);
+  --color-black-01: rgba(0, 0, 0, 0.1);
+  --color-black-02: rgba(0, 0, 0, 0.2);
+  --color-black-03: rgba(0, 0, 0, 0.3);
+  --color-black-04: rgba(0, 0, 0, 0.4);
+  --color-black-05: rgba(0, 0, 0, 0.5);
+  --color-black-06: rgba(0, 0, 0, 0.6);
+  --color-black-07: rgba(0, 0, 0, 0.7);
+
+  --color-border: rgb(60, 60, 60);
   --color-input-border: rgba(0, 0, 0, 0.23);
   --color-scroll: #dddddd;
 
@@ -32,7 +54,32 @@ body {
   --breakpoint-md: 786px;
   --breakpoint-lg: 992px;
   --breakpoint-xl: 1200px;
+  --breakpoint-15xl: 1368px;
   --breakpoint-2xl: 1536px;
-  --breakpoint-3xl: 1800px;
+  --breakpoint-3xl: 1955px;
   --breakpoint-4xl: 2100px;
+
+  --color-green-base: #1ed760;
+
+  --text-2xs: 0.625rem;
+}
+.clamp-px {
+  padding-inline: clamp(16px, 1vw, 24px);
+}
+@keyframes border-spin {
+  0% {
+    transform: rotate(0deg);
+    opacity: 1;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    transform: rotate(360deg);
+    opacity: 0;
+  }
+}
+
+.animate-border-spin {
+  animation: border-spin 2s linear infinite;
 }

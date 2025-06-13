@@ -10,13 +10,16 @@ import { ArtistsModule } from '@/artists/artists.module';
 import { GenresModule } from '@/genres/genres.module';
 import { TrackPlaysService } from '@/track-plays/track-plays.service';
 import { TrackPlaysModule } from '@/track-plays/track-plays.module';
+import { AlbumsModule } from '@/albums/albums.module';
+import { TagsModule } from '@/tag/tag.module';
 
 @Module({
   imports: [
     MongooseModule.forFeature([{ name: Track.name, schema: TrackSchema }]),
-    ArtistsModule,
+    AlbumsModule,
     GenresModule,
     TrackPlaysModule,
+    TagsModule,
   ],
   controllers: [TracksController],
   providers: [TracksService],

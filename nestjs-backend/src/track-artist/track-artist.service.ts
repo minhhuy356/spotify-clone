@@ -8,7 +8,7 @@ import {
 import { genSaltSync, hashSync } from 'bcryptjs';
 import { InjectModel } from '@nestjs/mongoose';
 import { SoftDeleteModel } from 'soft-delete-plugin-mongoose';
-import { IUser } from '@/users/users.interface';
+import { IUser, TOrder } from '@/users/users.interface';
 import aqp from 'api-query-params';
 
 import { GenresService } from '@/genres/Genres.service';
@@ -33,6 +33,9 @@ const defaultPopulation = [
         path: 'album',
         match: { _id: { $exists: true } }, // Chỉ populate nếu album có _id hợp lệ
       },
+      {
+        path: 'tags',
+      },
     ],
   },
   {
@@ -45,6 +48,44 @@ const defaultPopulation = [
     },
   },
 ];
+
+export interface TrackArtistItem {
+  track: any;
+  artist: any;
+  artistTypeDetail: any;
+  useStageName: boolean;
+}
+
+export function groupTracksById(data: TrackArtistItem[]): any[] {
+  const grouped = data.reduce(
+    (acc, item) => {
+      if (!item.track || !(item.track as any)._id?.toString()) {
+        console.warn('///////Missing track data in item:', item);
+        return acc;
+      }
+
+      const trackId = (item.track as any)._id.toString();
+
+      if (!acc[trackId]) {
+        acc[trackId] = {
+          ...item.track,
+          artists: [],
+        };
+      }
+
+      acc[trackId].artists.push({
+        artist: item.artist,
+        artistTypeDetail: item.artistTypeDetail,
+        useStageName: item.useStageName,
+      });
+
+      return acc;
+    },
+    {} as Record<string, any>,
+  );
+
+  return Object.values(grouped);
+}
 
 @Injectable()
 export class TrackArtistsService {
@@ -87,13 +128,13 @@ export class TrackArtistsService {
     return this.findById(createNewTrack._id.toString());
   }
 
-  async findAll(current: number, pageSize: number, qs: string) {
+  async findAll(current?: number, pageSize?: number, qs?: string) {
     const { filter, sort } = aqp(qs);
     delete filter.current;
     delete filter.pageSize;
 
     let offset = (+current - 1) * +pageSize;
-    let defaultPageSize = +pageSize ? +pageSize : 10;
+    let defaultPageSize = +pageSize ? +pageSize : 1000;
 
     // Truy vấn dữ liệu từ database
     const rawData = await this.trackArtistModel
@@ -106,7 +147,7 @@ export class TrackArtistsService {
       .exec();
 
     // Gộp các bài hát có cùng `track._id`
-    const groupedData = rawData.reduce((acc, item) => {
+    const groupedDataObject = rawData.reduce((acc, item) => {
       const trackId = (item.track as any)._id.toString();
 
       if (!acc[trackId]) {
@@ -122,6 +163,7 @@ export class TrackArtistsService {
       });
       return acc;
     }, {});
+    const groupedData = Object.values(groupedDataObject);
 
     const totalTracks = Object.keys(groupedData).length;
     const safePageSize = pageSize && pageSize > 0 ? pageSize : 10;
@@ -134,7 +176,7 @@ export class TrackArtistsService {
         pages: totalTracks > 0 ? Math.ceil(totalTracks / safePageSize) : 1,
         total: totalTracks,
       },
-      result: Object.values(groupedData),
+      result: groupedData,
     };
   }
 
@@ -261,13 +303,13 @@ export class TrackArtistsService {
     await this.trackService.remove(id, user);
 
     // 3️⃣ Cập nhật trạng thái `deleted` của tất cả TrackArtist liên quan
-    const removeResult = await this.trackArtistModel.updateMany(
+    const removeResult = await this.trackArtistModel.deleteMany(
       { track: id },
       { isDeleted: true, deletedBy: user._id },
     );
 
     // 4️⃣ Nếu không có TrackArtist nào bị cập nhật, báo lỗi
-    if (removeResult.modifiedCount < 1) {
+    if (removeResult.deletedCount < 1) {
       throw new HttpException(
         'No TrackArtist found to delete',
         HttpStatus.NOT_FOUND,
@@ -278,7 +320,7 @@ export class TrackArtistsService {
     return removeResult;
   }
 
-  async findAllByGenres(body: {
+  async findByGenresName(body: {
     genres: string[];
     limit: number;
     matchMode?: 'every' | 'some';
@@ -356,6 +398,11 @@ export class TrackArtistsService {
     // ✅ Gộp bài hát có cùng track._id
     const groupedData = rawData.reduce(
       (acc, item) => {
+        if (!item.track || !(item.track as any)._id.toString()) {
+          // Ghi log để debug nếu cần
+
+          return acc;
+        }
         const trackId = (item.track as any)._id.toString();
 
         if (!acc[trackId]) {
@@ -399,7 +446,6 @@ export class TrackArtistsService {
       .populate(defaultPopulation)
       .lean()
       .exec();
-    console.log(rawData);
 
     // ✅ Lọc các track có album đúng với yêu cầu
     const filteredData = rawData.filter((item) => {
@@ -431,5 +477,248 @@ export class TrackArtistsService {
     return Object.values(groupedData).sort(
       (a: any, b: any) => a.order - b.order,
     );
+  }
+
+  async fetchTrackByInfor(body, user: IUser) {
+    const { artistsId, genresId, sortBy, order, limit, tracksId } = body;
+
+    const exceptTracksId = [...tracksId]; // clone để không mutate input
+
+    const takenTrack = [];
+
+    let trackByGenres = [];
+    let fallbackTracks = [];
+
+    const trackByArtist = await this.findTrackByArtist(
+      {
+        artistsId,
+        tracksId: exceptTracksId,
+        limit,
+        sortBy,
+        order,
+      },
+      user,
+    );
+
+    // Đánh dấu ID đã lấy để loại trừ khỏi bước sau
+    trackByArtist.forEach((item) => {
+      exceptTracksId.push(String(item._id));
+      takenTrack.push(String(item._id));
+    });
+
+    const neededMore = limit - trackByArtist.length;
+
+    if (neededMore > 0) {
+      trackByGenres = await this.findTrackByGenresId(
+        {
+          genresId,
+          tracksId: exceptTracksId,
+          limit: neededMore,
+          sortBy,
+          order,
+        },
+        user,
+      );
+
+      // Đánh dấu ID đã lấy để loại trừ khỏi bước sau
+      trackByGenres.forEach((item) => {
+        exceptTracksId.push(String(item._id));
+        takenTrack.push(String(item._id));
+      });
+
+      // Nếu vẫn chưa đủ, thử lấy tiếp (bao gồm track đã trùng)
+      if (trackByGenres.length < neededMore) {
+        const stillNeed = neededMore - trackByGenres.length;
+
+        fallbackTracks = await this.fetchTrackTopForAutomatic(
+          stillNeed,
+          takenTrack,
+        );
+
+        // Đánh dấu ID đã lấy để loại trừ khỏi bước sau
+        fallbackTracks.forEach((item) => {
+          takenTrack.push(String(item._id));
+        });
+      }
+    }
+
+    return [...trackByArtist, ...trackByGenres, ...fallbackTracks];
+  }
+
+  async findTrackByArtist(
+    body: {
+      artistsId: string[];
+      tracksId: string[];
+      limit: number;
+      sortBy?: string;
+      order?: TOrder;
+    },
+    user,
+  ) {
+    const { artistsId, tracksId, sortBy, order = 'desc', limit } = body;
+
+    if (!Array.isArray(artistsId)) {
+      throw new HttpException(
+        'Artist must be an array',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    if (artistsId.length === 0) {
+      return [];
+    }
+
+    // Tạo filter
+    const filter: Record<string, any> = {
+      'track.releasedBy': {
+        $in: artistsId.map((id) => new Types.ObjectId(id)),
+      },
+    };
+
+    if (tracksId.length > 0) {
+      filter['track._id'] = {
+        $nin: tracksId.map((id) => new Types.ObjectId(id)),
+      };
+    }
+
+    // Truy vấn
+    const result = await this.trackArtistModel
+      .find(filter)
+      .populate(defaultPopulation)
+      .sort({
+        [sortBy || 'createdAt']: order === 'asc' ? 1 : -1,
+      })
+      .limit(limit)
+      .lean()
+      .exec();
+
+    const groupedData = groupTracksById(result);
+
+    return groupedData;
+  }
+  async findTrackByGenresId(
+    body: {
+      genresId: string[];
+      tracksId: string[];
+      limit: number;
+      sortBy?: string;
+      order?: TOrder;
+    },
+    user,
+  ) {
+    const { genresId, tracksId, sortBy, order = 'desc', limit } = body;
+
+    if (!Array.isArray(genresId)) {
+      throw new HttpException(
+        'Genres must be an array',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    if (genresId.length === 0) {
+      return [];
+    }
+
+    // ✅ Bước 1: Tìm track theo genre
+    const trackFilter: any = {
+      genres: { $in: genresId.map((id) => new Types.ObjectId(id)) },
+    };
+
+    if (tracksId.length > 0) {
+      trackFilter['_id'] = {
+        $nin: tracksId.map((id) => new Types.ObjectId(id)),
+      };
+    }
+
+    // ✅ Bước 2: Tìm track-artist theo track
+    const result = await this.trackArtistModel
+      .find({ track: { $in: tracksId } })
+      .populate(defaultPopulation)
+      .sort({
+        [sortBy || 'createdAt']: order === 'asc' ? 1 : -1,
+      })
+      .limit(limit)
+      .lean()
+      .exec();
+
+    const groupedData = groupTracksById(result);
+
+    return groupedData;
+  }
+
+  async fetchTrackTopForAutomatic(limit: number, takenTrack: string[]) {
+    const filter: any = {};
+
+    if (takenTrack.length > 0) {
+      filter.track = {
+        $nin: takenTrack.map((id) => new Types.ObjectId(id)),
+      };
+    }
+
+    const result = await this.trackArtistModel
+      .find(filter)
+      .populate(defaultPopulation)
+      .sort({ 'track.countPlay': -1 }) // 👈 đảm bảo track đã populate
+      .limit(limit)
+      .lean()
+      .exec();
+    const groupedData = groupTracksById(result);
+
+    return groupedData;
+  }
+  async findTrackByTag(
+    tagId: string,
+    sortBy?: string,
+    takenTracksId?: string[],
+  ) {
+    const tracks = (await this.findAll()).result as any;
+
+    // Lọc theo tagId
+    let filteredTracks = tracks.filter((track) =>
+      track.tags?.some((tag) => tag._id.toString() === tagId.toString()),
+    );
+
+    // Giữ lại bản sao trước khi lọc takenTracks
+    const beforeTakenFilter = [...filteredTracks];
+
+    // Lọc takenTracks nếu có
+    if (takenTracksId?.length) {
+      filteredTracks = filteredTracks.filter(
+        (track) => !takenTracksId.includes(track._id.toString()),
+      );
+
+      // Nếu lọc xong mà rỗng → fallback về danh sách trước khi lọc taken
+      if (filteredTracks.length === 0) {
+        filteredTracks = beforeTakenFilter;
+      }
+    }
+
+    // Xử lý sort
+    let sortField = sortBy;
+    let isDescending = false;
+
+    if (sortBy?.startsWith('-')) {
+      isDescending = true;
+      sortField = sortBy.slice(1); // bỏ dấu "-"
+    }
+
+    const sortedTracks = filteredTracks.sort((a, b) => {
+      const valA = a[sortField];
+      const valB = b[sortField];
+
+      let comparison = 0;
+
+      if (valA instanceof Date || Date.parse(valA)) {
+        comparison = new Date(valA).getTime() - new Date(valB).getTime();
+      } else if (typeof valA === 'number' && typeof valB === 'number') {
+        comparison = valA - valB;
+      } else if (typeof valA === 'string' && typeof valB === 'string') {
+        comparison = valA.localeCompare(valB);
+      }
+
+      return isDescending ? -comparison : comparison;
+    });
+
+    return sortedTracks;
   }
 }

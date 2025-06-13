@@ -1,0 +1,36 @@
+.notification-container {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 1000;
+}
+
+.notification {
+  background-color: #108ee9;
+  color: white;
+  padding: 15px;
+  border-radius: 5px;
+  margin-bottom: 10px;
+  width: 300px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.notification-header {
+  font-weight: bold;
+}
+
+.notification-body {
+  font-size: 14px;
+}
+
+.close-btn {
+  background: transparent;
+  border: none;
+  color: white;
+  cursor: pointer;
+  font-size: 16px;
+  margin-left: 10px;
+}

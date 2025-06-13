@@ -34,7 +34,7 @@ const Preview = ({ open, children, onClose }: IProps) => {
   if (!open) return null; // Kiểm tra `open` thay vì `showPreview`
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[1000]">
+    <div className="fixed inset-0 bg-black-03 bg-opacity-50 flex items-center justify-center z-[1000]">
       <div ref={childrenRef}>{children}</div>
 
       {/* Nút đóng */}

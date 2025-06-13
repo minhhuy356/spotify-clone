@@ -6,6 +6,10 @@ export class CreateUserPlaylistsDto {
   @IsString()
   name: string;
 
+  @IsString()
+  @IsOptional()
+  imgUrl: string;
+
   @IsArray()
   @IsOptional()
   tracks?: ObjectId[];

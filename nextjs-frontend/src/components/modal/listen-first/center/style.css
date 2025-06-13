@@ -1,0 +1,88 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center; /* Căn giữa dọc */
+  height: 100%; /* Hoặc chiều cao cha phù hợp */
+  overflow: hidden;
+}
+.container {
+  scroll-snap-type: y mandatory;
+  overflow-y: scroll;
+  height: 100vh; /* Hoặc chiều cao phù hợp */
+}
+
+.item {
+  scroll-snap-align: center;
+  scroll-margin: 15px; /* Khoảng cách giữa các item */
+}
+.container {
+  transition: transform 0.3s ease; /* animation mượt */
+  transform: translateY(calc(-100% * var(--index)));
+  /* 100% ở đây là chiều cao của phần tử container con */
+}
+
+.l1,
+.r1 {
+  animation: pulse13 0.5s ease-in-out infinite;
+  animation-delay: 0s;
+}
+.l2,
+.r2 {
+  animation: pulse2 0.6s ease-in-out infinite;
+  animation-delay: 0.2s;
+}
+.l3,
+.r3 {
+  animation: pulse13 0.5s ease-in-out infinite;
+  animation-delay: 0s;
+}
+.l4,
+.r4 {
+  animation: pulse4 0.6s ease-in-out infinite;
+  animation-delay: 0.9s;
+}
+
+@keyframes pulse13 {
+  0% {
+    height: 5%;
+  }
+  50% {
+    height: 9%;
+  }
+  75% {
+    height: 4%;
+  }
+  100% {
+    height: 5%;
+  }
+}
+
+@keyframes pulse2 {
+  0% {
+    height: 5%;
+  }
+  50% {
+    height: 9%;
+  }
+  75% {
+    height: 4%;
+  }
+  100% {
+    height: 5%;
+  }
+}
+
+@keyframes pulse4 {
+  0% {
+    height: 5%;
+  }
+  50% {
+    height: 8%;
+  }
+  75% {
+    height: 3%;
+  }
+  100% {
+    height: 5%;
+  }
+}

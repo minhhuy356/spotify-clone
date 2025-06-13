@@ -5,29 +5,48 @@ import { selectCurrentTrack } from "@/lib/features/tracks/tracks.slice";
 import { backendUrl, disk_tracks } from "@/api/url";
 import VolumeControl from "./volume";
 
-interface IProps {
-  isMobile: boolean;
-}
+interface IProps {}
 
-const AppFooter = ({ isMobile }: IProps) => {
+const AppFooter = ({}: IProps) => {
   const currentTrack = useAppSelector(selectCurrentTrack);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const [volume, setVolume] = useState<number>(0); // Giá trị từ 0 → 1
 
+  // Khi đang kéo
+
   const handleChangeVolume = (vol: number) => {
-    setVolume(vol); // Cập nhật lại state
+    setVolume(vol);
     if (audioRef.current) {
       audioRef.current.volume = vol;
-      localStorage.setItem("volume", vol.toString());
     }
+    localStorage.setItem("volume", vol.toString());
+  };
+
+  const handleChangeVolumeEnd = (vol: number) => {
+    // Chỉ lưu lại volumeBefore nếu > 0
+    if (vol > 0) {
+      localStorage.setItem("volumeBefore", vol.toString());
+    }
+  };
+
+  const handleMuteVolume = () => {
+    localStorage.setItem("volume", "0");
+    setVolume(0);
+  };
+
+  const handleUnMuteVolume = () => {
+    const volumeBefore = parseFloat(
+      localStorage.getItem("volumeBefore") || "0"
+    );
+    localStorage.setItem("volume", volumeBefore.toString());
+    setVolume(volumeBefore);
   };
 
   return (
     <div className="w-full bg-black py-4 flex text-white">
       <div
-        className={`${
-          isMobile ? "size-14" : "flex-1"
-        } flex items-center px-4 gap-4`}
+        className={` flex-1
+         flex items-center px-4 gap-4`}
       >
         {currentTrack && (
           <img
@@ -35,7 +54,7 @@ const AppFooter = ({ isMobile }: IProps) => {
             className="size-14 rounded"
           />
         )}
-        <div className={`${isMobile ? "block" : "flex flex-col"} `}>
+        <div className={`flex flex-col `}>
           <span className="font-semibold">{currentTrack?.title}</span>
           <span className="text-white-06">
             {currentTrack?.artists
@@ -50,7 +69,7 @@ const AppFooter = ({ isMobile }: IProps) => {
         </div>
       </div>
 
-      <div className={`${isMobile ? "" : "flex-1"} `}>
+      <div className={`flex-1 `}>
         <AudioPlayer
           audioPlayerRef={audioRef}
           setVolume={setVolume}
@@ -58,14 +77,13 @@ const AppFooter = ({ isMobile }: IProps) => {
         />
       </div>
 
-      <div
-        className={`${
-          isMobile ? "" : "flex-1"
-        } flex justify-end px-4 items-center`}
-      >
+      <div className={`flex-1 flex justify-end px-4 items-center`}>
         <VolumeControl
           volume={volume}
-          onChange={(vol) => handleChangeVolume(vol)}
+          onChange={handleChangeVolume}
+          onMouseUp={handleChangeVolumeEnd}
+          onMuteVolume={handleMuteVolume}
+          onUnMuteVolume={handleUnMuteVolume}
         />
       </div>
     </div>

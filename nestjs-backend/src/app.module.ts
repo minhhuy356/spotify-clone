@@ -28,6 +28,8 @@ import { ChooseByArtistsModule } from './choose-by-artist/choose-by-artist.modul
 import { UserPlaylistsModule } from './user-playlist/user-playlist.module';
 import { UserFolder } from './user-folder/schemas/user-folder.schema';
 import { UserFoldersModule } from './user-folder/user-folder.module';
+import { UserDailyFetchedTracksModule } from './user-daily-fetched-tracks/user-daily-fetched-tracks.module';
+import { TagsModule } from './tag/tag.module';
 
 @Module({
   imports: [
@@ -68,6 +70,8 @@ import { UserFoldersModule } from './user-folder/user-folder.module';
     ChooseByArtistsModule,
     UserPlaylistsModule,
     UserFoldersModule,
+    UserDailyFetchedTracksModule,
+    TagsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

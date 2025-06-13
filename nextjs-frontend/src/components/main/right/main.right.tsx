@@ -23,7 +23,7 @@ import {
   ITrack,
   IUserActivity,
 } from "@/types/data";
-import ButtonSubscribe from "../../button/button.subscribe";
+import ButtonSubscribe from "../../button/button.subscribe.artist";
 
 import { FaPause, FaPlay } from "react-icons/fa";
 import Waitlist from "./waitlist";
@@ -47,6 +47,7 @@ import {
 } from "@/lib/features/tracks/tracks.slice";
 import store from "@/lib/store";
 import Loading from "@/components/loading/loading";
+import ButtonSubscribeArtist from "../../button/button.subscribe.artist";
 
 interface IProps {
   fatherRef: React.RefObject<HTMLDivElement | null>;
@@ -131,7 +132,7 @@ const Right = (props: IProps) => {
   });
 
   return (
-    <div className={`relative ${rightWidth <= 42 ? "hidden " : "block"}`}>
+    <div className={` ${rightWidth <= 42 ? "hidden " : "block"}`}>
       <div className={`overflow-hidden rounded-lg group `}>
         <ScrollBar setScroll={setScroll} fatherRef={fatherRef}>
           <div className="relative">
@@ -140,7 +141,9 @@ const Right = (props: IProps) => {
             {/* Card Song */}
             <div className="relative ">
               <div
-                className={`h-auto flex justify-center w-full rounded-lg overflow-hidden `}
+                className={`h-auto flex justify-center w-full rounded-lg overflow-hidden ${
+                  !currentTrack.videoUrl && "p-4 "
+                }`}
                 style={{
                   paddingTop: `${
                     headerRef && headerRef.current?.clientHeight
@@ -157,6 +160,7 @@ const Right = (props: IProps) => {
                       )?.imgUrl
                     }`}
                     alt=""
+                    className="rounded-lg overflow-hidden"
                   />
                 )}
               </div>
@@ -225,7 +229,7 @@ const Right = (props: IProps) => {
                     </div>
                   </div>
                   <div className="flex ml-2 gap-4">
-                    <div className="max-w-0 group-hover:max-w-[40px] overflow-hidden cursor-pointer text-white-05 hover:text-white opacity-0 group-hover:opacity-100 transition-all duration-500">
+                    <div className="max-w-0 group-hover:max-w-[40px] overflow-hidden cursor-pointer text-white-05 hover:text-white opacity-0 0 transition-all duration-500">
                       <CiLink size={30} />
                     </div>
                     <div className="cursor-pointer text-white-05 hover:text-white">
@@ -267,12 +271,13 @@ const Right = (props: IProps) => {
                           100000 người nghe hàng tháng
                         </span>
                         <div>
-                          <ButtonSubscribe
+                          <ButtonSubscribeArtist
                             artist={currentTrack.releasedBy}
                             isSubscribe={
                               (session &&
                                 session?.user.artists.some(
-                                  (a) => a._id === currentTrack.releasedBy._id
+                                  (a: IArtist) =>
+                                    a._id === currentTrack.releasedBy._id
                                 )) ||
                               false
                             }

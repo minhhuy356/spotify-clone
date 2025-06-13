@@ -1,15 +1,22 @@
 import React, { useRef, useState, useEffect } from "react";
 import ClearIcon from "@mui/icons-material/Clear";
+import "./style.input.text.css";
 
 interface IProp {
   title: string;
   value?: string; // Giá trị có thể null, mặc định là ""
   onChange?: (value: string) => void;
+  placeHolder?: string;
 }
 
-const InputTextField: React.FC<IProp> = ({ title, value = "", onChange }) => {
+const InputTextField: React.FC<IProp> = ({
+  title,
+  value = "",
+  onChange,
+  placeHolder,
+}) => {
   const [inputValue, setInputValue] = useState<string>(value);
-  const [isFocused, setIsFocused] = useState<boolean>(false);
+  const [isFocused, setIsFocused] = useState<boolean>(true);
   const inputRef = useRef<HTMLInputElement>(null);
 
   // Theo dõi khi prop `value` thay đổi từ bên ngoài
@@ -28,23 +35,23 @@ const InputTextField: React.FC<IProp> = ({ title, value = "", onChange }) => {
   };
 
   return (
-    <div className="relative w-full group bg-inherit">
+    <div className="relative w-full group bg-inherit h-full">
       <fieldset
-        className={`border-white-06 group-hover:border-white absolute top-0 left-0 w-full h-[48px] border rounded-md transition-all bg-inherit ${
+        className={` absolute top-0 left-0 w-full min-h-[48px] h-full  rounded-[0.3rem] transition-all ${
           isFocused
-            ? "border-white ring-2 ring-white"
-            : "border-input-boder-color"
-        }`}
+            ? "border-white-04 border bg-50"
+            : "bg-60 border-0 border-transparent"
+        } `}
       >
-        <legend
-          className={`absolute left-3 px-1 transition-all bg-inherit ${
-            isFocused || inputValue
-              ? "-top-3 text-xs text-white"
-              : "top-3 text-white-06 text-sm group-hover:text-white"
-          }`}
+        <label
+          className={`rosHlzYfiO0UfpmOhP4I  absolute left-3 px-1 transition-all duration-300 text-xs ${
+            isFocused
+              ? "  text-white-08 opacity-100 z-[10] "
+              : " text-white-06  group-hover:text-white opacity-0"
+          } -top-[8px]  font-bold`}
         >
           {title}
-        </legend>
+        </label>
       </fieldset>
 
       <input
@@ -54,16 +61,17 @@ const InputTextField: React.FC<IProp> = ({ title, value = "", onChange }) => {
         onChange={(e) => handleChange(e.target.value)}
         onFocus={() => setIsFocused(true)}
         onBlur={() => setIsFocused(false)}
-        className="w-full py-3 px-3 bg-transparent relative z-10 focus:outline-none"
+        placeholder={`${placeHolder ? placeHolder : ""}`}
+        className="w-full py-3 px-3 bg-transparent relative z-10 focus:outline-none text-xs"
       />
 
-      {inputValue && (
+      {/* {inputValue && (
         <ClearIcon
           onMouseDown={(e) => e.preventDefault()}
           onClick={handleClear}
           className="absolute top-1/2 right-2 transform -translate-y-1/2 opacity-50 cursor-pointer z-20"
         />
-      )}
+      )} */}
     </div>
   );
 };

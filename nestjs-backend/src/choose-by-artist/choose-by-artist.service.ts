@@ -16,9 +16,17 @@ const defaultPopulation = [
   {
     path: 'artist',
   },
-
   {
     path: 'chooseTrack',
+  },
+  {
+    path: 'createdBy',
+  },
+  {
+    path: 'updatedBy',
+  },
+  {
+    path: 'deletedBy',
   },
 ];
 
@@ -36,23 +44,42 @@ export class ChooseByArtistsService {
     return hash;
   };
 
-  async create(createChooseByArtistDto: CreateChooseByArtistsDto, user: IUser) {
-    const result = await this.ChooseByArtistModel.create({
-      ...createChooseByArtistDto,
-      createdBy: {
-        _id: user._id,
-        email: user.email,
-      },
-    });
+  async create(data: CreateChooseByArtistsDto | string, user: IUser) {
+    if (typeof data === 'string') {
+      const result = await this.ChooseByArtistModel.create({
+        artist: data,
+        createdBy: {
+          _id: user._id,
+          email: user.email,
+        },
+      });
+      if (!result) {
+        throw new HttpException(
+          'Create new ChooseByArtist failed',
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
+      }
 
-    if (!result) {
-      throw new HttpException(
-        'Create new ChooseByArtist failed',
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
+      return result;
+      // Xử lý khi chỉ có artistId
+    } else {
+      // Xử lý khi nhận DTO đầy đủ
+      const result = await this.ChooseByArtistModel.create({
+        ...data,
+        createdBy: {
+          _id: user._id,
+          email: user.email,
+        },
+      });
+      if (!result) {
+        throw new HttpException(
+          'Create new ChooseByArtist failed',
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
+      }
+
+      return result;
     }
-
-    return result;
   }
 
   async findAll(current: number, pageSize: number, qs: string) {

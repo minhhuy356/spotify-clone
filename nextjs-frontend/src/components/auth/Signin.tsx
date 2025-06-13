@@ -21,6 +21,9 @@ import { resolve } from "url";
 import { useAppDispatch, useAppSelector } from "@/lib/hook";
 import { selectIsSignin, selectSession } from "@/lib/features/auth/auth.slice";
 import { login } from "@/lib/features/auth/auth.thunk";
+import Loading from "../loading/loading";
+import LoadingFull from "../loading/loading.full";
+import { unwrapResult } from "@reduxjs/toolkit";
 
 const AuthSignIn = (props: any) => {
   const [showPassword, setShowPassword] = useState<boolean>(false);
@@ -33,13 +36,12 @@ const AuthSignIn = (props: any) => {
   const [errorUsername, setErrorUsername] = useState<string>("");
   const [errorPassword, setErrorPassword] = useState<string>("");
 
-  const router = useRouter();
-
   const searchParams = useSearchParams();
   const callbackUrl = searchParams.get("callbackUrl") || "/"; // Mặc định về trang chủ nếu không có callbackUrl
 
+  const router = useRouter();
+
   const session = useAppSelector(selectSession);
-  const isSignin = useAppSelector(selectIsSignin);
 
   const dispatch = useAppDispatch();
 
@@ -60,16 +62,19 @@ const AuthSignIn = (props: any) => {
       return;
     }
 
-    dispatch(login({ username, password }));
-  };
+    try {
+      const resultAction = await dispatch(login({ username, password }));
+      const sessionData = unwrapResult(resultAction); // sessionData = { access_token, ... }
 
-  useEffect(() => {
-    if (isSignin) {
-      localStorage.setItem("session", JSON.stringify(session));
-      // Đánh dấu người dùng đã đăng nhập
-      router.push(`http://localhost:3000/${callbackUrl}`);
+      // lưu thủ công nếu cần:
+      localStorage.setItem("session", JSON.stringify(sessionData));
+
+      router.push(callbackUrl || "/"); // điều hướng ngay lập tức
+    } catch (error) {
+      console.error("Login failed", error);
+      // show toast or error
     }
-  }, [isSignin]);
+  };
 
   return (
     <div>
@@ -119,7 +124,7 @@ const AuthSignIn = (props: any) => {
                 />
               </Link> */}
               <div className="group relative flex justify-center items-center text-zinc-600 text-sm font-bold">
-                <div className="absolute opacity-0 group-hover:opacity-100 group-hover:-translate-y-[150%] -translate-y-[300%] duration-500 group-hover:delay-500 skew-y-[20deg] group-hover:skew-y-0 shadow-md">
+                <div className="absolute opacity-0 0 group-hover:-translate-y-[150%] -translate-y-[300%] duration-500 group-hover:delay-500 skew-y-[20deg] group-hover:skew-y-0 shadow-md">
                   <div className="bg-lime-200 flex items-center gap-1 p-2 rounded-md">
                     <svg
                       fill="none"
@@ -130,27 +135,27 @@ const AuthSignIn = (props: any) => {
                       className="stroke-zinc-600"
                     >
                       <circle
-                        stroke-linejoin="round"
+                        strokeLinejoin="round"
                         r="9"
                         cy="12"
                         cx="12"
                       ></circle>
                       <path
-                        stroke-linejoin="round"
+                        strokeLinejoin="round"
                         d="M12 3C12 3 8.5 6 8.5 12C8.5 18 12 21 12 21"
                       ></path>
                       <path
-                        stroke-linejoin="round"
+                        strokeLinejoin="round"
                         d="M12 3C12 3 15.5 6 15.5 12C15.5 18 12 21 12 21"
                       ></path>
-                      <path stroke-linejoin="round" d="M3 12H21"></path>
-                      <path stroke-linejoin="round" d="M19.5 7.5H4.5"></path>
+                      <path strokeLinejoin="round" d="M3 12H21"></path>
+                      <path strokeLinejoin="round" d="M19.5 7.5H4.5"></path>
                       <g filter="url(#filter0_d_15_556)">
-                        <path stroke-linejoin="round" d="M19.5 16.5H4.5"></path>
+                        <path strokeLinejoin="round" d="M19.5 16.5H4.5"></path>
                       </g>
                       <defs>
                         <filter
-                          color-interpolation-filters="sRGB"
+                          colorInterpolationFilters="sRGB"
                           filterUnits="userSpaceOnUse"
                           height="3"
                           width="17"
@@ -160,7 +165,7 @@ const AuthSignIn = (props: any) => {
                         >
                           <feFlood
                             result="BackgroundImageFix"
-                            flood-opacity="0"
+                            floodOpacity="0"
                           ></feFlood>
                           <feColorMatrix
                             result="hardAlpha"
@@ -206,8 +211,7 @@ const AuthSignIn = (props: any) => {
                     className="fill-zinc-600"
                   >
                     <path
-                      stroke-linejoin="round"
-                      stroke-linecap="round"
+                      strokeLinejoin="round"
                       d="M15.4306 7.70172C7.55045 7.99826 3.43929 15.232 2.17021 19.3956C2.07701 19.7014 2.31139 20 2.63107 20C2.82491 20 3.0008 19.8828 3.08334 19.7074C6.04179 13.4211 12.7066 12.3152 15.514 12.5639C15.7583 12.5856 15.9333 12.7956 15.9333 13.0409V15.1247C15.9333 15.5667 16.4648 15.7913 16.7818 15.4833L20.6976 11.6784C20.8723 11.5087 20.8993 11.2378 20.7615 11.037L16.8456 5.32965C16.5677 4.92457 15.9333 5.12126 15.9333 5.61253V7.19231C15.9333 7.46845 15.7065 7.69133 15.4306 7.70172Z"
                     ></path>
                   </svg>
@@ -389,6 +393,7 @@ const AuthSignIn = (props: any) => {
           </div>
         </Grid>
       </Grid>
+      {/* {isSignin && <LoadingFull />}; */}
     </div>
   );
 };

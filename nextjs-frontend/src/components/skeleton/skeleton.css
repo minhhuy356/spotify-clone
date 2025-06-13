@@ -1,0 +1,28 @@
+/* skeleton.css */
+.skeleton {
+  position: relative;
+  background-color: #2c2c2c;
+  overflow: hidden;
+}
+
+.skeleton::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -150%;
+  height: 100%;
+  width: 150%;
+  background: linear-gradient(
+    to right,
+    transparent 0%,
+    rgba(185, 185, 185, 0.386) 50%,
+    transparent 100%
+  );
+  animation: shimmer 1.5s infinite;
+}
+
+@keyframes shimmer {
+  100% {
+    left: 100%;
+  }
+}

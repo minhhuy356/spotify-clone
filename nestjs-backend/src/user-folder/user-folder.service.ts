@@ -21,7 +21,7 @@ import { UserActivitysService } from '@/user_activity/user-activity.service';
 export class UserFoldersService {
   constructor(
     @InjectModel(UserFolder.name)
-    private UserFolderModel: SoftDeleteModel<UserFolderDocument>,
+    private userFolderModel: SoftDeleteModel<UserFolderDocument>,
     private userActivitysService: UserActivitysService,
   ) {}
 
@@ -33,7 +33,7 @@ export class UserFoldersService {
   };
 
   async create(createUserFolderDto: CreateUserFoldersDto, user: IUser) {
-    const result = await this.UserFolderModel.create({
+    const result = await this.userFolderModel.create({
       ...createUserFolderDto,
     });
 
@@ -43,14 +43,26 @@ export class UserFoldersService {
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
+    try {
+      await this.userActivitysService.UpdateFolder(
+        result._id.toString(),
+        user._id.toString(),
+        1,
+      );
+    } catch (error) {
+      throw error;
+    }
 
-    await this.userActivitysService.UpdateFolder(
-      result._id.toString(),
-      user._id.toString(),
-      1,
+    const resAddLibrary = await this.userFolderModel.updateOne(
+      { _id: result._id.toString() },
+      { addLibraryAt: new Date() },
     );
 
-    return result;
+    if (resAddLibrary) {
+      const info = this.userFolderModel.findOne({ _id: result._id });
+
+      return info;
+    }
   }
 
   async findAll(current: number, pageSize: number, qs: string) {
@@ -61,10 +73,11 @@ export class UserFoldersService {
     let offset = (+current - 1) * +pageSize;
     let defaultpageSize = +pageSize ? +pageSize : 10;
 
-    const totalItems = (await this.UserFolderModel.find(filter)).length;
+    const totalItems = (await this.userFolderModel.find(filter)).length;
     const totalPages = Math.ceil(totalItems / defaultpageSize);
 
-    const data = await this.UserFolderModel.find(filter)
+    const data = await this.userFolderModel
+      .find(filter)
       .skip(offset)
       .limit(defaultpageSize)
       .sort(sort as any)
@@ -84,7 +97,7 @@ export class UserFoldersService {
   }
 
   async findById(id: string) {
-    const result = await this.UserFolderModel.findById(id);
+    const result = await this.userFolderModel.findById(id);
 
     if (!result) {
       throw new HttpException('UserFolder not found', HttpStatus.NOT_FOUND);
@@ -94,7 +107,7 @@ export class UserFoldersService {
   }
 
   async findOneByName(name: string) {
-    const result = await this.UserFolderModel.findOne({ name });
+    const result = await this.userFolderModel.findOne({ name });
 
     if (!result) {
       throw new HttpException('UserFolder not found', HttpStatus.NOT_FOUND);
@@ -108,7 +121,7 @@ export class UserFoldersService {
     updateUserFolderDto: UpdateUserFoldersDto,
     user: IUser,
   ) {
-    const result = await this.UserFolderModel.updateOne(
+    const result = await this.userFolderModel.updateOne(
       { _id: id },
       {
         ...updateUserFolderDto,
@@ -119,11 +132,11 @@ export class UserFoldersService {
       },
     );
 
-    return result;
+    if (result) return await this.userFolderModel.findById(id);
   }
 
   async remove(id: string, user) {
-    await this.UserFolderModel.updateOne(
+    await this.userFolderModel.updateOne(
       { _id: id },
       {
         deletedBy: {
@@ -133,7 +146,7 @@ export class UserFoldersService {
       },
     );
 
-    const result = await this.UserFolderModel.deleteOne({
+    const result = await this.userFolderModel.deleteOne({
       _id: id,
     });
 

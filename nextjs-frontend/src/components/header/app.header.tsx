@@ -5,17 +5,15 @@ import { useRouter } from "next/navigation";
 
 import { FaRegBell } from "react-icons/fa";
 import { motion } from "framer-motion";
-import SearchCustom from "../input/input.search";
+import SearchCustom from "../input/admin/input.search";
 import ContextMenuAccount from "../context-menu/context-menu.account";
 import { useAppSelector } from "@/lib/hook";
 import { selectSession } from "@/lib/features/auth/auth.slice";
 import { useEffect, useRef, useState } from "react";
 
-interface IProps {
-  isMobile?: boolean;
-}
+interface IProps {}
 
-export default function AppHeader({ isMobile }: IProps) {
+export default function AppHeader({}: IProps) {
   const session = useAppSelector(selectSession);
   const router = useRouter();
   const [contextMenuAccountOpen, setContextMenuAccountOpen] = useState(false); // Trạng thái menu
@@ -36,9 +34,7 @@ export default function AppHeader({ isMobile }: IProps) {
     <div>
       <div className="bg-inherit">
         <div className="my-2">
-          <div
-            className={`flex px-4 ${isMobile ? "" : "justify-between"} gap-4`}
-          >
+          <div className={`flex px-4 justify-between gap-4`}>
             <div className="flex items-center px-4 cursor-pointer">
               <div onClick={handleRedirectHome} className="text-white text-3xl">
                 NEXT

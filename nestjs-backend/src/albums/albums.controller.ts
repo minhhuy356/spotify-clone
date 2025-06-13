@@ -14,6 +14,7 @@ import { IUser } from '@/users/users.interface';
 import { AlbumsService } from './Albums.service';
 import { CreateAlbumsDto } from './dto/create-album.dto';
 import { UpdateAlbumsDto } from './dto/update-album.dto';
+import { AlbumQueryDto } from './dto/query-album.dto';
 
 @Controller('Albums')
 export class AlbumsController {
@@ -41,6 +42,17 @@ export class AlbumsController {
   @ResponseMessage('Find by id')
   findById(@Param('id') id: string) {
     return this.AlbumService.findById(id);
+  }
+
+  @Public()
+  @Get('related/:id')
+  @ResponseMessage('Find by id')
+  fetchAlbumRelated(@Param('id') id: string, @Query() query: AlbumQueryDto) {
+    return this.AlbumService.fetchAlbumRelated(id, {
+      ...query,
+      limit: query.limit ? parseInt(query.limit) : undefined,
+      skip: query.skip ? parseInt(query.skip) : undefined,
+    });
   }
 
   @Patch(':id')

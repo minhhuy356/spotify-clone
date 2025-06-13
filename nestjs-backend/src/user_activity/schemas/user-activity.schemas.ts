@@ -2,7 +2,7 @@ import { Album } from '@/albums/schemas/Album.schema';
 import { Artist } from '@/artists/schemas/artist.schema';
 
 import { Track } from '@/tracks/schemas/track.schemas';
-import { ITrack } from '@/types/data';
+import { ITrack } from '@/types/data.backend';
 import { UserFolder } from '@/user-folder/schemas/user-folder.schema';
 import { UserPlaylist } from '@/user-playlist/schemas/user-playlist.schema';
 import { User } from '@/users/schemas/user.schema';

@@ -3,12 +3,9 @@
 import AppFooter from "@/components/footer/app.footer";
 import AppHeader from "@/components/header/app.header";
 import Left from "@/components/main/left/left.main";
-
 import ScrollBar from "@/components/scroll/scroll";
-import React from "react";
+import React, { useEffect, useRef, useState } from "react";
 import Right from "@/components/main/right/main.right";
-import ContextMenuAccount from "@/components/context-menu/context-menu.account";
-import ContextMenuTrack from "@/components/context-menu/context-menu.track";
 import {
   hardCenterWidth,
   hardLeftWidth,
@@ -22,18 +19,20 @@ import {
   ultimateLeftWidth,
   widthDrag,
 } from "../layout";
-import ContextMenuArtist from "@/components/context-menu/context-menu.artist";
-import ContextMenuAlbum from "@/components/context-menu/conntex-menu.album";
+import Notification from "@/components/notification/notification";
+import { NotificationProvider } from "@/components/notification/notification-context";
+import { useAppSelector } from "@/lib/hook";
+import {
+  selectCurrentTime,
+  selectCurrentTrack,
+  selectListenFirst,
+} from "@/lib/features/tracks/tracks.slice";
+import ModalListenFirst from "@/components/modal/listen-first/listen-first.modal";
 
 interface ILayout {
-  left: IPosition;
-  right: number;
+  left: { width: number; isClose: boolean };
+  right: { width: number; isClose: boolean };
   center: number;
-}
-
-interface IPosition {
-  width: number;
-  isClose: boolean;
 }
 
 export default function RootLayout({
@@ -41,103 +40,163 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const [leftWidth, setLeftWidth] = React.useState<number>(300);
-  const [rightWidth, setRightWidth] = React.useState<number>(300);
-  const [centerWidth, setCenterWidth] = React.useState<number>(0); // Initialize to 0
-  const [screenWidth, setScreenWidth] = React.useState<number>(0); // Initialize to 0
-  const [isMobile, setIsMobile] = React.useState<boolean>(false); // Initialize to 0
-  const layoutBasic: ILayout = {
-    left: {
-      width: leftWidth,
-      isClose: false,
-    },
-    right: rightWidth,
-    center: centerWidth,
+  const layoutBasic = {
+    left: { width: 300, isClose: false },
+    right: { width: 0, isClose: true },
+    center: 0,
   };
 
-  const [isLayout, setIsLayout] = React.useState<boolean>(false);
+  const [layoutState, setLayoutState] = useState<ILayout>(layoutBasic);
 
-  const leftRef = React.useRef<HTMLDivElement | null>(null);
-  const centerRef = React.useRef<HTMLDivElement | null>(null);
-  const rightRef = React.useRef<HTMLDivElement | null>(null);
+  const [screenWidth, setScreenWidth] = useState<number>(0);
+
+  const [isLayout, setIsLayout] = useState<boolean>(false);
+
+  const leftRef = useRef<HTMLDivElement | null>(null);
+  const centerRef = useRef<HTMLDivElement | null>(null);
+  const rightRef = useRef<HTMLDivElement | null>(null);
+
+  const listenFirst = useAppSelector(selectListenFirst);
+  const currentTrack = useAppSelector(selectCurrentTrack);
+
+  const updateLayout = (partial: Partial<ILayout>) => {
+    const newLayout = {
+      ...layoutState,
+      ...partial,
+      left: {
+        ...layoutState.left,
+        ...(partial.left || {}),
+      },
+      right: {
+        ...layoutState.right,
+        ...(partial.right || {}),
+      },
+    };
+    setLayoutState(newLayout);
+    localStorage.setItem("layout", JSON.stringify(newLayout));
+  };
 
   React.useLayoutEffect(() => {
-    if (typeof window !== "undefined") {
-      const initialWidth = window.innerWidth;
-      setScreenWidth(initialWidth);
-      setCenterWidth(initialWidth - leftWidth - rightWidth - space);
-    }
+    const initialWidth = window.innerWidth;
+    setScreenWidth(initialWidth);
+    updateLayout({
+      center:
+        initialWidth - layoutState.left.width - layoutState.right.width - space,
+    });
   }, []);
 
   React.useLayoutEffect(() => {
     const updateWidth = () => {
       const screenWidth = window.innerWidth;
-
       let layout: ILayout =
-        JSON.parse(localStorage.getItem("layout") || "null") || layoutBasic;
+        JSON.parse(localStorage.getItem("layout") || "null") || layoutState;
 
-      if (screenWidth >= 877 && screenWidth < 900) {
+      if (screenWidth < 900) {
         layout.left.width = minLeftWidth;
-        layout.right = hardRightWidth;
-        layout.center =
-          hardCenterWidth +
-          (screenWidth -
-            hardCenterWidth -
-            hardRightWidth -
-            minLeftWidth -
-            space);
-        setIsMobile(true);
+        if (layout.right.isClose) {
+          layout.right.width = minRightWidth;
+          layout.center =
+            screenWidth - layout.left.width - layout.right.width - space;
+        } else {
+          layout.right.width = hardRightWidth;
+
+          const futureCenter =
+            hardCenterWidth +
+            (screenWidth -
+              hardCenterWidth -
+              hardRightWidth -
+              minLeftWidth -
+              space) -
+            8;
+          if (
+            layout.center >= hardCenterWidth &&
+            futureCenter >= hardCenterWidth
+          ) {
+            layout.center = futureCenter;
+          }
+        }
       } else if (screenWidth > 900) {
-        setIsMobile(false);
-        if (layout.left.isClose === false) {
+        console.log(currentTrack);
+        console.log(layout.right.isClose);
+        if (!layout.right.isClose) {
+          const scaleFactor = 0.05;
+          layout.right.width = Math.max(
+            Math.min(
+              hardRightWidth + (screenWidth - 900) * scaleFactor,
+              maxRightWidth
+            ),
+            hardRightWidth
+          );
+        }
+
+        if (!layout.left.isClose) {
           const scaleFactor = 0.05;
           layout.left.width = Math.max(
             Math.min(hardLeftWidth + (screenWidth - 900) * scaleFactor, 600),
             hardLeftWidth
           );
-
           if (screenWidth === window.screen.width) {
             layout.left.width = hardLeftWidth;
           }
-
           layout.center =
-            screenWidth - layout.left.width - layout.right - space;
+            screenWidth -
+            layout.left.width -
+            layout.right.width -
+            space -
+            (!layout.right.isClose ? 8 : 0);
 
           if (layout.center <= hardCenterWidth) {
             layout.center = hardCenterWidth;
           }
-
           if (screenWidth < 1200) {
             layout.left.width = hardLeftWidth;
           }
         } else {
           layout.center =
-            screenWidth - layout.left.width - layout.right - space;
+            screenWidth -
+            layout.left.width -
+            layout.right.width -
+            space -
+            (!layout.right.isClose ? 8 : 0);
         }
-      } else if (screenWidth < 877) {
-        layout.center = hardCenterWidth;
-        setIsMobile(true);
       }
-      setLeftWidth(layout.left.width);
-      setRightWidth(layout.right);
-      setCenterWidth(layout.center);
+
+      setScreenWidth(screenWidth);
+      updateLayout(layout);
       setIsLayout(true);
-      localStorage.setItem("layout", JSON.stringify(layout));
     };
 
     updateWidth();
-
     window.addEventListener("resize", updateWidth);
-
     return () => window.removeEventListener("resize", updateWidth);
   }, []);
 
+  useEffect(() => {
+    const screenWidth = window.innerWidth;
+    let layout: ILayout =
+      JSON.parse(localStorage.getItem("layout") || "null") || layoutState;
+
+    if (currentTrack) {
+      if (screenWidth > 1200) {
+        layout.right.width = maxRightWidth;
+      } else {
+        layout.right.width = hardRightWidth;
+      }
+      layout.right.isClose = false;
+      layout.center =
+        screenWidth - layout.left.width - layout.right.width - space - 8;
+    }
+
+    updateLayout(layout);
+  }, [currentTrack]);
+
+  // 🔧 handleDrag logic giữ nguyên – chỉ đổi sang dùng layoutState
   const handleDrag = (
     e: React.MouseEvent<HTMLDivElement>,
     side: "left" | "right"
   ) => {
     e.preventDefault();
-    document.body.style.cursor = "grab"; // Đổi con trỏ khi kéo
+    document.body.style.cursor = "grab";
 
     const startX = e.clientX;
     const screenWidth = window.innerWidth;
@@ -145,26 +204,17 @@ export default function RootLayout({
     const onMouseMove = (event: MouseEvent) => {
       const deltaX = event.clientX - startX;
 
-      const layoutBasic = {
-        left: {
-          width: leftWidth,
-          isClose: false,
-        },
-        right: rightWidth,
-        center: centerWidth,
-      };
-
       let layout: ILayout =
         JSON.parse(localStorage.getItem("layout") || "null") || layoutBasic;
-      // screen > 900
+
       if (screenWidth > 900) {
         if (side === "left") {
-          let tempLeft = leftWidth + deltaX;
+          let tempLeft = layoutState.left.width + deltaX;
           layout.left.width = tempLeft;
-          // Nếu chưa vượt 300
+
           if (layout.left.width <= hardLeftWidth) {
-            if (layout.left.width < leftWidth) {
-              if (layout.left.width < leftWidth - 100) {
+            if (layout.left.width < layoutState.left.width) {
+              if (layout.left.width < layoutState.left.width - 100) {
                 layout.left.width = minLeftWidth;
                 layout.left.isClose = true;
               } else {
@@ -172,23 +222,22 @@ export default function RootLayout({
               }
             }
 
-            if (layout.left.width > leftWidth) {
+            if (layout.left.width > layoutState.left.width) {
               if (layout.left.width > minLeftWidth + 100) {
                 layout.left.width = hardLeftWidth;
-
                 layout.left.isClose = false;
               } else {
                 layout.left.width = minLeftWidth;
               }
             }
+
             layout.center =
-              screenWidth - layout.left.width - layout.right - space;
+              screenWidth - layout.left.width - layout.right.width - space;
           } else if (
             layout.left.width > maxLeftWidth &&
             layout.left.width < ultimateLeftWidth
           ) {
-            // Vượt 300 >
-            if (layout.left.width > leftWidth) {
+            if (layout.left.width > layoutState.left.width) {
               if (layout.left.width > maxLeftWidth + 100) {
                 layout.left.width = ultimateLeftWidth;
               } else {
@@ -196,7 +245,7 @@ export default function RootLayout({
               }
             }
 
-            if (layout.left.width < leftWidth) {
+            if (layout.left.width < layoutState.left.width) {
               if (layout.left.width < ultimateLeftWidth - 100) {
                 layout.left.width = maxLeftWidth;
               } else {
@@ -204,101 +253,139 @@ export default function RootLayout({
               }
             }
           }
-          // reponsive center and right
-          if (layout.left.width > leftWidth) {
+
+          if (layout.left.width > layoutState.left.width) {
             if (layout.center >= hardCenterWidth) {
               layout.center =
-                screenWidth - layout.right - layout.left.width - space;
+                screenWidth - layout.right.width - layout.left.width - space;
             }
+
             if (layout.center < hardCenterWidth) {
               layout.center = hardCenterWidth;
 
-              if (layout.right > hardRightWidth) {
-                layout.right =
+              if (layout.right.width > hardRightWidth) {
+                layout.right.width =
                   screenWidth - layout.center - layout.left.width - space;
               }
+
               if (
                 layout.left.width >
-                screenWidth - layout.right - layout.center + 100
+                screenWidth - layout.right.width - layout.center + 100
               ) {
-                layout.right = minRightWidth;
+                layout.right.width = minRightWidth;
               }
-              layout.left.width =
-                screenWidth - layout.right - layout.center - space;
 
-              if (layout.right === minRightWidth) {
+              layout.left.width =
+                screenWidth - layout.right.width - layout.center - space;
+
+              if (layout.right.width === minRightWidth) {
                 layout.left.width =
-                  screenWidth - layout.right - layout.center - space + 16;
+                  screenWidth - layout.right.width - layout.center - space;
               }
             }
           } else {
             layout.center =
-              screenWidth - layout.left.width - layout.right - space;
+              screenWidth - layout.left.width - layout.right.width - space;
+
             if (
               layout.center > hardCenterWidth + 200 &&
-              layout.right === minRightWidth
+              layout.right.width === minRightWidth
             ) {
-              layout.right = hardRightWidth;
+              layout.right.width = hardRightWidth;
               layout.left.width =
                 screenWidth - hardCenterWidth - hardRightWidth - space;
               layout.center = hardCenterWidth;
             }
-            if (layout.right === minRightWidth) {
+
+            if (layout.right.width === minRightWidth) {
               layout.center =
-                screenWidth - layout.left.width - layout.right - space + 16;
+                screenWidth -
+                layout.left.width -
+                layout.right.width -
+                space +
+                16;
             }
           }
         } else if (side === "right") {
-          let tempLeft = rightWidth - deltaX;
-          layout.right = tempLeft;
+          let tempRight = layoutState.right.width - deltaX;
+          layout.right.width = tempRight;
 
-          if (layout.right < rightWidth) {
-            if (layout.right < minRightWidth) {
-              layout.right = minRightWidth;
-            } else if (layout.right < hardRightWidth) {
-              layout.right = hardRightWidth;
+          if (layout.right.width < layoutState.right.width) {
+            if (layout.right.width <= minRightWidth) {
+              layout.right.width = minRightWidth;
+              return;
+            } else if (layout.right.width < hardRightWidth) {
+              layout.right.width = hardRightWidth;
             }
           } else {
-            if (layout.right < hardRightWidth) {
-              if (layout.right >= minRightWidth + 100) {
-                layout.right = hardRightWidth;
-                if (layout.center <= hardCenterWidth) {
-                  layout.center = hardCenterWidth;
-                  layout.left.width =
-                    screenWidth - layout.right - layout.center - space;
+            if (layout.right.width < hardRightWidth) {
+              if (layout.right.width >= minRightWidth + 100) {
+                const futureCenter =
+                  screenWidth - hardRightWidth - layout.left.width - space - 8;
+
+                if (futureCenter >= hardCenterWidth) {
+                  layout.right.width = hardRightWidth;
+                  layout.center = futureCenter;
+                } else {
+                  const futureLeft =
+                    screenWidth - hardCenterWidth - hardRightWidth - space;
+
+                  if (futureLeft >= minLeftWidth) {
+                    layout.right.width = hardRightWidth;
+                    layout.center = hardCenterWidth;
+                    layout.left.width = futureLeft;
+                  } else {
+                    layout.right.width = minRightWidth;
+                    layout.center =
+                      screenWidth -
+                      layout.left.width -
+                      layout.right.width -
+                      space;
+                  }
                 }
               } else {
-                layout.right = minRightWidth;
+                layout.right.width = minRightWidth;
+                layout.center =
+                  screenWidth - layout.left.width - layout.right.width - space;
               }
             } else {
-              if (layout.right <= maxRightWidth) {
-                if (layout.center <= hardCenterWidth) {
+              if (layout.right.width <= maxRightWidth) {
+                if (
+                  screenWidth -
+                    layout.right.width -
+                    layout.left.width -
+                    space >=
+                  hardCenterWidth
+                ) {
+                  layout.center =
+                    screenWidth -
+                    layout.right.width -
+                    layout.left.width -
+                    space;
+                } else {
                   layout.center = hardCenterWidth;
                   layout.left.width =
-                    screenWidth - layout.right - layout.center - space;
+                    screenWidth - layout.right.width - layout.center - space;
                 }
               } else {
-                layout.right = maxRightWidth;
+                layout.right.width = maxRightWidth;
+                layout.center =
+                  screenWidth - layout.right.width - layout.left.width - space;
               }
             }
           }
 
           layout.center =
-            screenWidth - layout.left.width - layout.right - space;
-          if (layout.right === minRightWidth) {
-            layout.center =
-              screenWidth - layout.left.width - layout.right - space + 16;
-          }
+            screenWidth - layout.left.width - layout.right.width - space;
         }
       } else {
-        // screen <900
         if (side === "left") {
-          let tempLeft = leftWidth + deltaX;
+          let tempLeft = layoutState.left.width + deltaX;
           layout.left.width = tempLeft;
 
           if (layout.left.width < hardLeftWidth) {
-            if (layout.left.width < leftWidth) {
-              if (layout.left.width < leftWidth - 50) {
+            if (layout.left.width < layoutState.left.width) {
+              if (layout.left.width < layoutState.left.width - 50) {
                 layout.left.width = minLeftWidth;
                 layout.left.isClose = true;
               } else {
@@ -306,7 +393,7 @@ export default function RootLayout({
               }
             }
 
-            if (layout.left.width > leftWidth) {
+            if (layout.left.width > layoutState.left.width) {
               if (layout.left.width > minLeftWidth + 50) {
                 layout.left.width = hardLeftWidth;
                 layout.left.isClose = false;
@@ -320,14 +407,11 @@ export default function RootLayout({
             }
           }
 
-          layout.center = screenWidth + layout.right - layout.left.width;
+          layout.center = screenWidth + layout.right.width - layout.left.width;
         }
       }
 
-      setLeftWidth(layout.left.width);
-      setRightWidth(layout.right);
-      setCenterWidth(layout.center);
-
+      setLayoutState(layout);
       localStorage.setItem("layout", JSON.stringify(layout));
     };
 
@@ -341,86 +425,81 @@ export default function RootLayout({
     window.addEventListener("mouseup", onMouseUp);
   };
 
-  if (!isLayout) return <></>;
+  if (!isLayout) return null;
 
   return (
-    <div>
-      {" "}
+    <div
+      style={{
+        overflow: listenFirst.modalListenFirst.isOpen ? "hidden" : "",
+        minWidth: 800,
+      }}
+    >
       <div className="relative h-screen w-full">
         <div
-          className={`grid ${
-            isMobile
-              ? "grid-rows-[auto_minmax(448px,1fr)_auto]"
-              : "grid-rows-[auto_1fr_auto]"
-          } bg-base h-screen `}
+          className={`grid 
+               grid-rows-[auto_1fr_auto]
+          bg-base h-screen`}
         >
           <div className="w-full bg-black">
-            <AppHeader isMobile={isMobile} />
+            <AppHeader />
           </div>
 
-          {/* Content */}
           <div
-            className={`grid h-full bg-black text-white gap-[4px] min-h-[448px] ${
-              rightWidth === minRightWidth ? "pl-2" : " px-2"
-            } `}
+            className={`relative grid h-full bg-black text-white gap-[4px] min-h-[448px] ${
+              layoutState.right.width === minRightWidth ? "pl-2" : " px-2"
+            }`}
             style={{
-              gridTemplateColumns: `${leftWidth}px ${widthDrag}px ${centerWidth}px ${widthDrag}px ${rightWidth}px`,
+              gridTemplateColumns: `${layoutState.left.width}px ${widthDrag}px ${layoutState.center}px ${widthDrag}px ${layoutState.right.width}px`,
             }}
           >
             <div
-              className=" bg-base min-h-0 w-full overflow-hidden rounded-lg"
+              className="bg-base min-h-0 w-full overflow-hidden rounded-lg"
               ref={leftRef}
             >
-              <Left
-                leftWidth={leftWidth}
-                fatherRef={leftRef}
-                hardLeftWidth={hardLeftWidth}
-              />
+              <Left leftWidth={layoutState.left.width} fatherRef={leftRef} />
             </div>
 
-            {/* Thanh kéo giữa Left & Center */}
             <div
-              className="w-[3px]  bg-transparent hover:bg-hover cursor-grab"
+              className="w-[3px] bg-transparent hover:bg-hover cursor-grab"
               onMouseDown={(e) => handleDrag(e, "left")}
             />
 
-            {/* Center */}
             <div
-              className="rounded-lg bg-base min-h-0 overflow-hidden "
+              className="rounded-lg bg-base min-h-0 overflow-hidden"
               ref={centerRef}
             >
-              <div className="w-full text-white h-full ">
+              <div className="w-full text-white h-full">
                 <ScrollBar fatherRef={centerRef}>{children}</ScrollBar>
               </div>
             </div>
 
-            {/* Thanh kéo giữa Center & Right */}
+            <div
+              className={`${
+                screenWidth > 900 ? "visible" : "invisible"
+              } w-[3px] bg-transparent hover:bg-hover cursor-grab`}
+              onMouseDown={(e) => handleDrag(e, "right")}
+            />
 
             <div
               className={`${
-                screenWidth > 900 ? "visible" : "invisible   "
-              }w-[3px] bg-transparent hover:bg-hover cursor-grab`}
-              onMouseDown={(e) => handleDrag(e, "right")}
-            />
-            {/* Right */}
-
-            <div
-              className={` ${
-                rightWidth <= 50 ? " rounded-l" : " rounded-b-lg"
-              }  overflow-hidden bg-base min-h-0  flex flex-col`}
+                layoutState.right.width <= 50 ? "rounded-l" : "rounded-b-lg"
+              } overflow-hidden bg-base min-h-0 flex flex-col relative`}
               ref={rightRef}
             >
-              <Right fatherRef={rightRef} rightWidth={rightWidth} />
+              <Right
+                fatherRef={rightRef}
+                rightWidth={layoutState.right.width}
+              />
             </div>
           </div>
 
           <div className="w-full">
-            <AppFooter isMobile={isMobile} />
+            <AppFooter />
           </div>
         </div>
       </div>
-      <ContextMenuTrack />
-      <ContextMenuArtist /> <ContextMenuAlbum />
+      <Notification />
+      <ModalListenFirst />
     </div>
   );
 }

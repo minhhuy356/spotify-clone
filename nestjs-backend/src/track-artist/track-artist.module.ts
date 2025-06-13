@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 
 import { MongooseModule } from '@nestjs/mongoose';
 
@@ -10,6 +10,7 @@ import { TrackArtistsController } from './track-artist.controller';
 import { TrackArtistsService } from './track-artist.service';
 import { TracksModule } from '@/tracks/tracks.module';
 import { UserTypesModule } from '@/user-type/user-type.module';
+import { TagsModule } from '@/tag/tag.module';
 
 @Module({
   imports: [

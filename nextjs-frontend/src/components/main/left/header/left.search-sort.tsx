@@ -9,7 +9,7 @@ const SearchSortLibrary = () => {
     <div className="flex justify-between  items-center relative ml-2">
       <div className="flex flex-1">
         <div
-          className="absolute size-8 top-0 flex items-center z-[100] text-white  p-1 hover:bg-40 rounded-full cursor-pointer justify-center "
+          className="absolute size-8 top-0 flex items-center z-10 text-white  p-1 hover:bg-40 rounded-full cursor-pointer justify-center "
           onClick={() => SetIsSearch(!isSearch)}
         >
           <CiSearch size={20} />

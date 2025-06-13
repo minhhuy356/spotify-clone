@@ -12,7 +12,7 @@ interface IProps {
   anchorRef: React.RefObject<HTMLDivElement | null>; // Avatar ref
 }
 
-type Position = "absolute" | "fixed";
+export type Position = "absolute" | "fixed";
 
 const ContextMenuAccount = ({ isOpen, setIsOpen, anchorRef }: IProps) => {
   const session = useAppSelector(selectSession);
@@ -30,13 +30,6 @@ const ContextMenuAccount = ({ isOpen, setIsOpen, anchorRef }: IProps) => {
       window.location.reload();
     }
   };
-
-  // Đóng menu khi click ra ngoài
-  useEffect(() => {
-    // if (isOpen === false) {
-    //   setPosition("absolute");
-    // }
-  }, [isOpen]);
 
   // Đóng menu khi click ra ngoài
   useEffect(() => {
@@ -153,7 +146,7 @@ const ContextMenuAccount = ({ isOpen, setIsOpen, anchorRef }: IProps) => {
         right: `${right}px`,
         top: `${top}px`,
       }}
-      className="bg-40 text-white min-w-[260px] rounded-sm shadow-lg p-1 z-1000 flex flex-col text-lg"
+      className="bg-40 text-white min-w-[260px] rounded overflow-hidden shadow-lg p-1 z-1000 flex flex-col text-lg"
     >
       {session?.user?.roles?.map((item) => {
         if (item.name === "ADMIN") {

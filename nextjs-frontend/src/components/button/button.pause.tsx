@@ -1,7 +1,9 @@
 import "./button.css";
 import { ITrack } from "@/types/data";
-interface IButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {}
-const ButtonPause: React.FC<IButtonProps> = (props) => {
+interface IButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+  size?: number;
+}
+const ButtonPause: React.FC<IButtonProps> = ({ size = 1 }: IButtonProps) => {
   return (
     <>
       {/**nút copy từ spotify */}
@@ -14,7 +16,10 @@ const ButtonPause: React.FC<IButtonProps> = (props) => {
             data-is-icon-only="true"
             className="Button-sc-qlcn5g-0 iPAIAO e-9541-button-primary e-9541-button"
           >
-            <span className="ButtonInner-sc-14ud5tc-0 TFilp encore-bright-accent-set e-9541-button-icon-only--medium e-9541-button-primary__inner">
+            <span
+              className="ButtonInner-sc-14ud5tc-0 TFilp encore-bright-accent-set e-9541-button-icon-only--medium e-9541-button-primary__inner"
+              style={{ scale: (size / 2) * 2 }}
+            >
               <span aria-hidden="true" className="e-9640-button__icon-wrapper">
                 <svg
                   data-encore-id="icon"

@@ -10,11 +10,17 @@ import aqp from 'api-query-params';
 import { CreateAlbumsDto } from './dto/create-album.dto';
 import { UpdateAlbumsDto } from './dto/update-album.dto';
 
+const defaultPopulation = [
+  {
+    path: 'releasedBy',
+  },
+];
+
 @Injectable()
 export class AlbumsService {
   constructor(
     @InjectModel(Album.name)
-    private AlbumModel: SoftDeleteModel<AlbumDocument>,
+    private albumModel: SoftDeleteModel<AlbumDocument>,
   ) {}
 
   hashPassword = (password: string) => {
@@ -26,7 +32,7 @@ export class AlbumsService {
 
   async create(createAlbumDto: CreateAlbumsDto, user: IUser) {
     // Kiểm tra xem email đã tồn tại chưa
-    const existingAlbum = await this.AlbumModel.findOne({
+    const existingAlbum = await this.albumModel.findOne({
       name: createAlbumDto.name,
     });
     // Nếu email đã tồn tại thì trả ra lỗi
@@ -34,7 +40,7 @@ export class AlbumsService {
       throw new HttpException('Album already exists', HttpStatus.BAD_REQUEST);
     }
 
-    const result = await this.AlbumModel.create({
+    const result = await this.albumModel.create({
       ...createAlbumDto,
       createdBy: {
         _id: user._id,
@@ -60,14 +66,15 @@ export class AlbumsService {
     let offset = (+current - 1) * +pageSize;
     let defaultpageSize = +pageSize ? +pageSize : 10;
 
-    const totalItems = (await this.AlbumModel.find(filter)).length;
+    const totalItems = (await this.albumModel.find(filter)).length;
     const totalPages = Math.ceil(totalItems / defaultpageSize);
 
-    const data = await this.AlbumModel.find(filter)
+    const data = await this.albumModel
+      .find(filter)
       .skip(offset)
       .limit(defaultpageSize)
       .sort(sort as any)
-      .populate(population)
+      .populate(defaultPopulation)
       .exec();
 
     return {
@@ -82,7 +89,9 @@ export class AlbumsService {
   }
 
   async findById(id: string) {
-    const result = await this.AlbumModel.findById(id);
+    const result = await this.albumModel
+      .findById(id)
+      .populate(defaultPopulation);
 
     if (!result) {
       throw new HttpException('Album not found', HttpStatus.NOT_FOUND);
@@ -91,8 +100,37 @@ export class AlbumsService {
     return result;
   }
 
+  async fetchAlbumRelated(
+    releasedById: string,
+    query: {
+      sort?: string;
+      limit?: number;
+      skip?: number;
+      select?: string;
+    } = {},
+  ) {
+    const { sort = '-createdAt', limit = 10, skip = 0, select } = query;
+
+    const result = await this.albumModel
+      .find({ releasedBy: releasedById })
+      .populate(defaultPopulation)
+      .sort(sort)
+      .skip(skip)
+      .limit(limit);
+
+    if (select) {
+      result.forEach((doc: any) => doc.select(select));
+    }
+
+    if (!result || result.length === 0) {
+      throw new HttpException('No albums found', HttpStatus.NOT_FOUND);
+    }
+
+    return result;
+  }
+
   async update(id: string, updateAlbumDto: UpdateAlbumsDto, user: IUser) {
-    const result = await this.AlbumModel.updateOne(
+    const result = await this.albumModel.updateOne(
       { _id: id },
       {
         ...updateAlbumDto,
@@ -103,11 +141,21 @@ export class AlbumsService {
       },
     );
 
-    return result;
+    if (result) return await this.albumModel.findById(id);
+  }
+  async updateAddLibrary(id: string, date: Date | null, user: IUser) {
+    const result = await this.albumModel.updateOne(
+      { _id: id },
+      {
+        addLibraryAt: date,
+      },
+    );
+
+    if (result) return await this.albumModel.findById(id);
   }
 
   async remove(id: string, user) {
-    await this.AlbumModel.updateOne(
+    await this.albumModel.updateOne(
       { _id: id },
       {
         deletedBy: {
@@ -117,7 +165,7 @@ export class AlbumsService {
       },
     );
 
-    const result = await this.AlbumModel.softDelete({
+    const result = await this.albumModel.softDelete({
       _id: id,
     });
 
@@ -129,13 +177,13 @@ export class AlbumsService {
   }
 
   async updateCountLike(id: string, quantity: number, user: IUser) {
-    const Album = await this.AlbumModel.findById(id);
+    const Album = await this.albumModel.findById(id);
 
     if (!Album) throw new Error('Album not found');
 
     const newCountLike = Math.max(0, (Album.countLike || 0) + quantity); // Đảm bảo không âm
 
-    const result = await this.AlbumModel.updateOne(
+    const result = await this.albumModel.updateOne(
       { _id: id },
       {
         $set: { countLike: newCountLike }, // Gán giá trị mới
