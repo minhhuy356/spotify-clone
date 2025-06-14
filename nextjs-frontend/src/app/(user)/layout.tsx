@@ -28,6 +28,7 @@ import {
   selectListenFirst,
 } from "@/lib/features/tracks/tracks.slice";
 import ModalListenFirst from "@/components/modal/listen-first/listen-first.modal";
+import WebsiteInformation from "@/components/footer/website-information";
 
 interface ILayout {
   left: { width: number; isClose: boolean };
@@ -116,8 +117,6 @@ export default function RootLayout({
           }
         }
       } else if (screenWidth > 900) {
-        console.log(currentTrack);
-        console.log(layout.right.isClose);
         if (!layout.right.isClose) {
           const scaleFactor = 0.05;
           layout.right.width = Math.max(
@@ -469,7 +468,7 @@ export default function RootLayout({
               ref={centerRef}
             >
               <div className="w-full text-white h-full">
-                <ScrollBar fatherRef={centerRef}>{children}</ScrollBar>
+                <ScrollBar fatherRef={centerRef}>{children} </ScrollBar>
               </div>
             </div>
 

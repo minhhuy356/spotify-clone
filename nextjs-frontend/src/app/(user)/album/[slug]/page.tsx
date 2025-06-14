@@ -31,6 +31,8 @@ import { track_artist_service } from "@/service/track-artist.service";
 import AlbumCopyright from "./album.copyright";
 import AlbumOpenratingArea from "./album.operating-area";
 import AlbumListAblum from "./album.list-album";
+import Divider from "@/components/divider/divider";
+import WebsiteInformation from "@/components/footer/website-information";
 
 interface IProps {}
 
@@ -161,6 +163,9 @@ const AlbumPage = ({}: IProps) => {
           </div>
           <div className="my-8">
             <AlbumListAblum album={album} />
+          </div>{" "}
+          <div className="px-4 ">
+            <WebsiteInformation />
           </div>
         </div>
       </div>

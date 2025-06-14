@@ -7,20 +7,76 @@ interface IProps extends HTMLAttributes<HTMLDivElement> {
   album: IAlbum;
 }
 
-const AlbumListAblum = ({ album }: IProps) => {
+const AlbumListAlbum = ({ album }: IProps) => {
   const [listAlbumRelated, setListAlbumRelated] = useState<IAlbum[]>([]);
+  const [numberOfDisplayCard, setNumberOfDisplayCard] = useState<number>(20);
+  const [layout, setLayout] = useState<string>(
+    () => localStorage.getItem("layout") || ""
+  );
 
   const containerRef = useRef<HTMLDivElement>(null);
+  const cardRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
   const fetchListAlbumRelated = async () => {
     const res = await album_service.fetchAlbumRelated(album.releasedBy._id);
-    if (res) {
-      setListAlbumRelated(res);
-    }
+    if (res) setListAlbumRelated(res);
   };
 
+  const resizeCard = () => {
+    const container = containerRef.current;
+    if (!container || listAlbumRelated.length === 0) return;
+
+    const firstAlbum = listAlbumRelated.find(
+      (album) => cardRefs.current[album._id]
+    );
+    if (!firstAlbum) return;
+
+    const cardEl = cardRefs.current[firstAlbum._id];
+    if (!cardEl) return;
+
+    const cardWidth = cardEl.clientWidth;
+    const containerWidth = container.clientWidth;
+
+    if (cardWidth === 0) return;
+
+    const count = Math.round(containerWidth / cardWidth);
+    console.log(containerWidth);
+    console.log(cardWidth);
+    console.log(count);
+    setNumberOfDisplayCard(count);
+  };
+
+  // Fetch data ban đầu
   useEffect(() => {
     fetchListAlbumRelated();
+  }, []);
+
+  // Resize khi dữ liệu hoặc layout thay đổi
+  useEffect(() => {
+    resizeCard();
+  }, [listAlbumRelated, layout]);
+
+  // Resize khi window resize
+  useEffect(() => {
+    window.addEventListener("resize", resizeCard);
+    return () => {
+      window.removeEventListener("resize", resizeCard);
+    };
+  }, []);
+
+  // Theo dõi layout trong cùng 1 tab (thủ công)
+  useEffect(() => {
+    let previousLayout = localStorage.getItem("layout") || "";
+
+    const interval = setInterval(() => {
+      const currentLayout = localStorage.getItem("layout") || "";
+      if (currentLayout !== previousLayout) {
+        previousLayout = currentLayout;
+        setLayout(currentLayout); // cập nhật layout → trigger resizeCard thông qua dependency
+      }
+    }, 300); // check mỗi 300ms
+
+    return () => clearInterval(interval);
   }, []);
 
   return (
@@ -38,17 +94,26 @@ const AlbumListAblum = ({ album }: IProps) => {
 
       <div className="w-full">
         <div
-          className="grid "
+          ref={containerRef}
+          className="grid"
           style={{
             gridTemplateColumns: "repeat(auto-fill, minmax(180px, 1fr))",
           }}
         >
-          {listAlbumRelated.map((item) => (
-            <CardImageAlbum
+          {listAlbumRelated.map((item, index) => (
+            <div
               key={item._id}
-              album={item}
-              maxTrackForAlbum={null}
-            />
+              ref={(el) => {
+                cardRefs.current[item._id] = el;
+              }}
+              className={` ${
+                index >= numberOfDisplayCard
+                  ? "opacity-0 pointer-events-none absolute"
+                  : "opacity-100 relative transition-opacity duration-300"
+              }`}
+            >
+              <CardImageAlbum album={item} maxTrackForAlbum={null} />
+            </div>
           ))}
         </div>
       </div>
@@ -56,4 +121,4 @@ const AlbumListAblum = ({ album }: IProps) => {
   );
 };
 
-export default AlbumListAblum;
+export default AlbumListAlbum;
