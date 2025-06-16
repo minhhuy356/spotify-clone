@@ -12,6 +12,7 @@ import { track_artist_service } from "@/service/track-artist.service";
 import { artist_service } from "@/service/artist.service";
 import { monthly_listener_service } from "@/service/monthly-listener.service";
 import Loading from "@/components/loading/loading";
+import WebsiteInformation from "@/components/footer/website-information";
 
 interface ArtistPageProps {
   params: { slug: string };
@@ -49,7 +50,7 @@ const DetailArtistPage = async ({ params }: ArtistPageProps) => {
         trackForArtist={trackForArtist}
         monthlyListener={monthlyListener}
         chooseByArtist={chooseByArtist}
-      />
+      />{" "}
     </div>
   );
 };

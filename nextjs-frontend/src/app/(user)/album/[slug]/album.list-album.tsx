@@ -40,9 +40,7 @@ const AlbumListAlbum = ({ album }: IProps) => {
     if (cardWidth === 0) return;
 
     const count = Math.round(containerWidth / cardWidth);
-    console.log(containerWidth);
-    console.log(cardWidth);
-    console.log(count);
+
     setNumberOfDisplayCard(count);
   };
 

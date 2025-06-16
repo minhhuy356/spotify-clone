@@ -1,158 +1,164 @@
-import { ReactNode, useRef, useState, useEffect, forwardRef } from "react";
+"use client";
+
+import { setScrollCenter } from "@/lib/features/scroll-center/scroll-center.slice";
+import { useAppDispatch } from "@/lib/hook";
+import {
+  ReactNode,
+  useRef,
+  useState,
+  useEffect,
+  useCallback,
+  useLayoutEffect,
+} from "react";
 
 type CustomScrollbarProps = {
   children: ReactNode;
   fatherRef?: React.RefObject<HTMLDivElement | null>;
   headerRef?: React.RefObject<HTMLDivElement | null>;
   setScroll?: (value: number) => void;
+  position: "center" | "left" | "right";
 };
 
-const ScrollBar = (props: CustomScrollbarProps) => {
-  const { fatherRef, headerRef, children, setScroll } = props;
+const ScrollBar = ({
+  children,
+  fatherRef,
+  headerRef,
+  setScroll,
+  position,
+}: CustomScrollbarProps) => {
+  const dispatch = useAppDispatch();
 
   const contentRef = useRef<HTMLDivElement>(null);
   const scrollBarRef = useRef<HTMLDivElement>(null);
-  const [scrollThumbHeight, setScrollThumbHeight] = useState<number>(20);
-  const [scrollTop, setScrollTop] = useState<number>(0);
-  const [trackHeight, setTrackHeight] = useState<number>(0);
-  const isDragging = useRef<boolean>(false);
-  const startY = useRef<number>(0);
-  const startScrollTop = useRef<number>(0);
-  const scrollTarget = useRef<number>(0);
-  const animationFrameRef = useRef<number>(0);
-  const [isHovered, setIsHovered] = useState<boolean>(false);
+  const isDragging = useRef(false);
+  const startY = useRef(0);
+  const startScrollTop = useRef(0);
+  const lastMove = useRef(0);
+
+  const [scrollThumbHeight, setScrollThumbHeight] = useState(20);
+  const [scrollTop, setScrollTop] = useState(0);
+  const [trackHeight, setTrackHeight] = useState(0);
+  const [isHovered, setIsHovered] = useState(false);
+  const [showScrollbar, setShowScrollbar] = useState(false);
+  const [isDraggingState, setIsDraggingState] = useState(false);
+
+  const updateLayout = useCallback(() => {
+    const father = fatherRef?.current;
+    const header = headerRef?.current;
+    const content = contentRef.current;
+
+    if (!father || !content) return;
+
+    const visibleHeight = father.clientHeight - (header?.clientHeight ?? 0);
+    const scrollHeight = content.scrollHeight;
+
+    // Nếu scrollHeight = 0 thì nội dung chưa render xong → delay lại
+    if (scrollHeight === 0) {
+      setTimeout(updateLayout, 50);
+      return;
+    }
+
+    setTrackHeight(visibleHeight);
+
+    if (scrollHeight >= visibleHeight) {
+      const thumbHeight = Math.max(
+        (visibleHeight / scrollHeight) * visibleHeight,
+        20
+      );
+      setScrollThumbHeight(thumbHeight);
+      setShowScrollbar(true);
+    } else {
+      setShowScrollbar(false);
+    }
+  }, [fatherRef, headerRef]);
+
+  useLayoutEffect(() => {
+    const timeout = setTimeout(() => {
+      updateLayout();
+    }, 50); // delay để DOM có nội dung
+
+    const resizeHandler = () => updateLayout();
+    window.addEventListener("resize", resizeHandler);
+
+    const observer = new MutationObserver(() => {
+      setTimeout(updateLayout, 50);
+    });
+
+    if (contentRef.current) {
+      observer.observe(contentRef.current, {
+        childList: true,
+        subtree: true,
+      });
+    }
+
+    return () => {
+      clearTimeout(timeout);
+      observer.disconnect();
+      window.removeEventListener("resize", resizeHandler);
+    };
+  }, [updateLayout]);
 
   useEffect(() => {
-    if (setScroll) setScroll(scrollTop); // Đồng bộ trạng thái khi `open` thay đổi
-  }, [scrollTop]);
+    const handleScroll = () => {
+      if (!contentRef.current) return;
 
-  useEffect(() => {
-    const updateLayout = () => {
-      const father = fatherRef?.current;
-      const content = contentRef?.current;
-      if (!father || !content) return;
-
-      const visibleHeight = father.clientHeight;
-      setTrackHeight(visibleHeight);
+      const content = contentRef.current;
+      const maxScrollTop = content.scrollHeight - trackHeight;
+      const currentScrollTop = content.scrollTop;
+      const scrollRatio = currentScrollTop / maxScrollTop;
+      const newThumbTop = scrollRatio * (trackHeight - scrollThumbHeight);
 
       requestAnimationFrame(() => {
-        if (content.scrollHeight >= visibleHeight) {
-          const thumbHeight = Math.max(
-            (visibleHeight / content.scrollHeight) * visibleHeight,
-            20
-          );
-          setScrollThumbHeight(thumbHeight);
+        setScrollTop(newThumbTop);
+        if (position === "center") {
+          dispatch(setScrollCenter({ scroll: currentScrollTop }));
         }
+
+        setScroll?.(currentScrollTop);
       });
     };
 
-    // Thêm MutationObserver để phát hiện thay đổi trong nội dung
-    const observer = new MutationObserver(updateLayout);
-    if (contentRef.current) {
-      observer.observe(contentRef.current, { childList: true, subtree: true });
-    }
-
-    updateLayout(); // Chạy khi mount
-
-    window.addEventListener("resize", updateLayout);
+    const el = contentRef.current;
+    if (el) el.addEventListener("scroll", handleScroll);
     return () => {
-      observer.disconnect();
-      window.removeEventListener("resize", updateLayout);
+      if (el) el.removeEventListener("scroll", handleScroll);
     };
-  }, [fatherRef, headerRef]);
+  }, [trackHeight, scrollThumbHeight, dispatch, setScroll]);
 
-  // useEffect(() => {
-  //   const observer = new MutationObserver(() => {
-  //     updateLayout();
-  //   });
-
-  //   if (contentRef.current) {
-  //     observer.observe(contentRef.current, { childList: true, subtree: true });
-  //   }
-
-  //   return () => observer.disconnect();
-  // }, []);
-
-  // Hàm animation cuộn lên mượt mà
-  const smoothScrollTo = (targetScroll: number) => {
-    if (!contentRef.current) return;
-    scrollTarget.current = targetScroll;
-
-    const animateScroll = () => {
-      if (!contentRef.current) return;
-      const currentScroll = contentRef.current.scrollTop;
-      const diff = scrollTarget.current - currentScroll;
-
-      if (Math.abs(diff) < 1) {
-        contentRef.current.scrollTop = scrollTarget.current;
-        return;
-      }
-
-      contentRef.current.scrollTop += diff * 0.05; // Điều chỉnh tốc độ cuộn
-      animationFrameRef.current = requestAnimationFrame(animateScroll);
-    };
-
-    cancelAnimationFrame(animationFrameRef.current);
-    animateScroll();
-  };
-
-  // Xử lý cuộn chuột
-  const handleWheel = (e: WheelEvent) => {
-    if (!contentRef.current) return;
-    e.preventDefault();
-
-    const newTarget = contentRef.current.scrollTop + e.deltaY * 2;
-    smoothScrollTo(newTarget);
-  };
-
-  // Gán sự kiện cuộn
-  useEffect(() => {
-    const content = contentRef.current;
-    content?.addEventListener("wheel", handleWheel, { passive: false });
-    return () => content?.removeEventListener("wheel", handleWheel);
-  }, []);
-
-  // Cập nhật vị trí thanh cuộn khi nội dung cuộn
-  const handleContentScroll = () => {
-    if (!contentRef.current) return;
-    const content = contentRef.current;
-    const maxScrollTop = content.scrollHeight - trackHeight;
-
-    const scrollRatio = content.scrollTop / maxScrollTop;
-    setScrollTop(scrollRatio * (trackHeight - scrollThumbHeight));
-  };
-
-  // Kéo thanh cuộn
   const handleMouseDown = (e: React.MouseEvent) => {
     e.preventDefault();
     isDragging.current = true;
     startY.current = e.clientY;
     startScrollTop.current = scrollTop;
+    setIsDraggingState(true);
 
     document.addEventListener("mousemove", handleMouseMove);
     document.addEventListener("mouseup", handleMouseUp);
   };
 
   const handleMouseMove = (e: MouseEvent) => {
+    const now = Date.now();
+    if (now - lastMove.current < 16) return;
+    lastMove.current = now;
+
     if (!isDragging.current || !contentRef.current) return;
-    const content = contentRef.current;
-    const maxScrollTop = content.scrollHeight - trackHeight;
 
-    let deltaY = e.clientY - startY.current;
+    const deltaY = e.clientY - startY.current;
     let newScrollTop = startScrollTop.current + deltaY;
-
     newScrollTop = Math.max(
       0,
       Math.min(newScrollTop, trackHeight - scrollThumbHeight)
     );
 
     const scrollRatio = newScrollTop / (trackHeight - scrollThumbHeight);
-    smoothScrollTo(scrollRatio * maxScrollTop);
-    setScrollTop(newScrollTop);
+    const maxScrollTop = contentRef.current.scrollHeight - trackHeight;
+
+    contentRef.current.scrollTop = scrollRatio * maxScrollTop;
   };
 
   const handleMouseUp = () => {
     isDragging.current = false;
+    setIsDraggingState(false);
     document.removeEventListener("mousemove", handleMouseMove);
     document.removeEventListener("mouseup", handleMouseUp);
   };
@@ -166,40 +172,40 @@ const ScrollBar = (props: CustomScrollbarProps) => {
       {/* Nội dung cuộn */}
       <div
         ref={contentRef}
-        onScroll={handleContentScroll}
-        className="w-full overflow-hidden h-full "
+        className="w-full h-full overflow-y-scroll overflow-x-hidden"
         style={{
           maxHeight: `${trackHeight}px`,
+          scrollbarWidth: "none",
         }}
       >
         {children}
       </div>
 
-      {/* Thanh cuộn tùy chỉnh */}
-      <div
-        className="absolute top-0 right-0 w-3 bg-transparent z-10"
-        style={{
-          height: `${trackHeight}px`,
-          opacity: isHovered ? 1 : 0,
-          transition: isHovered
-            ? "opacity 0.1s ease-in"
-            : "opacity 0.5s ease-out 1s", // Chờ 0.5s rồi mới ẩn từ từ
-          display:
-            contentRef.current && trackHeight >= contentRef.current.scrollHeight
-              ? "none"
-              : "block",
-        }}
-      >
+      {/* Scrollbar tùy chỉnh */}
+      {showScrollbar && (
         <div
-          ref={scrollBarRef}
-          className="cursor-pointer bg-white-05"
+          className="absolute top-0 right-0 w-3 z-50 bg-transparent"
           style={{
-            height: ` ${scrollThumbHeight}px`,
-            transform: `translateY(${scrollTop}px)`,
+            height: `${trackHeight}px`,
+            opacity: isHovered ? 1 : 0,
+            transition: isHovered
+              ? "opacity 0.1s ease-in"
+              : "opacity 0.5s ease-out 1s",
           }}
-          onMouseDown={handleMouseDown}
-        />
-      </div>
+        >
+          <div
+            ref={scrollBarRef}
+            className={`${
+              isDraggingState ? "bg-white-07" : "hover:bg-white-05 bg-white-03"
+            }`}
+            style={{
+              height: `${scrollThumbHeight}px`,
+              transform: `translateY(${scrollTop}px)`,
+            }}
+            onMouseDown={handleMouseDown}
+          />
+        </div>
+      )}
     </div>
   );
 };

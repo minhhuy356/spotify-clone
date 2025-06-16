@@ -61,6 +61,7 @@ const CardTrackArtist = (props: IProps) => {
             currentTrack: track,
 
             playingSource: {
+              _id: artist._id,
               in: "artist",
               title: artist.stageName,
               before: "artist",
@@ -78,6 +79,7 @@ const CardTrackArtist = (props: IProps) => {
           currentTrack: track,
 
           playingSource: {
+            _id: artist._id,
             in: "artist",
             title: artist.stageName,
             before: "artist",
@@ -199,7 +201,10 @@ const CardTrackArtist = (props: IProps) => {
           onClick={playTrack}
           className="cursor-pointer  group-hover:block hidden "
         >
-          {currentTrack && currentTrack._id === track._id && isPlay ? (
+          {playingSource.in === "artist" &&
+          currentTrack &&
+          currentTrack._id === track._id &&
+          isPlay ? (
             <FaPause
               size={15}
               className="absolute top-1/2  left-1/2 -translate-1.5 hidden group-hover:block"
@@ -214,7 +219,9 @@ const CardTrackArtist = (props: IProps) => {
 
         <span
           className={`font-semibold ${
-            currentTrack && currentTrack._id === track._id
+            playingSource.in === "artist" &&
+            currentTrack &&
+            currentTrack._id === track._id
               ? "text-green-500"
               : "text-white-06"
           }   group-hover:hidden `}
@@ -236,7 +243,9 @@ const CardTrackArtist = (props: IProps) => {
 
         <div
           className={`${
-            currentTrack && currentTrack._id === track._id
+            playingSource.in === "artist" &&
+            currentTrack &&
+            currentTrack._id === track._id
               ? "!text-green-500"
               : ""
           } hover:underline cursor-pointer `}

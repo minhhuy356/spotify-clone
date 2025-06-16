@@ -134,7 +134,7 @@ const Right = (props: IProps) => {
   return (
     <div className={` ${rightWidth <= 42 ? "hidden " : "block"}`}>
       <div className={`overflow-hidden rounded-lg group `}>
-        <ScrollBar setScroll={setScroll} fatherRef={fatherRef}>
+        <ScrollBar setScroll={setScroll} fatherRef={fatherRef} position="right">
           <div className="relative">
             {" "}
             <VideoInformation fatherRef={fatherRef} headerRef={headerRef} />

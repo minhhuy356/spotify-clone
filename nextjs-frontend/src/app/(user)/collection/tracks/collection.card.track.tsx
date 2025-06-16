@@ -80,6 +80,7 @@ const CollectionCardTrack = ({
             currentTrack: track,
 
             playingSource: {
+              _id: track._id,
               in: "collection",
               title: "bài hát đã thích",
               before: "collection",
@@ -97,9 +98,10 @@ const CollectionCardTrack = ({
           currentTrack: track,
 
           playingSource: {
-            in: "track",
+            _id: track._id,
+            in: "collection",
             title: "",
-            before: "track",
+            before: "collection",
           },
         })
       );

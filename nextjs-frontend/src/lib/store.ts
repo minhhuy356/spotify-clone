@@ -5,7 +5,7 @@ import tracksReducer from "./features/tracks/tracks.slice";
 import artistReducer from "./features/artists/artist.slice";
 import genreReducer from "./features/genres/genre.slice";
 import seekReducer from "./features/seek.slice";
-
+import scrollCenterReducer from "./features/scroll-center/scroll-center.slice";
 const store = configureStore({
   reducer: {
     local: localReducer,
@@ -14,6 +14,7 @@ const store = configureStore({
     artist: artistReducer,
     genre: genreReducer,
     seek: seekReducer,
+    scrollCenter: scrollCenterReducer,
   },
 });
 

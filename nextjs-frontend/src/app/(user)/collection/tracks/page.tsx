@@ -23,51 +23,103 @@ import DialogCollectionFormTrack, {
 import CollectionArtistTableTrack from "./collection.table.track";
 import { useMediaQuery } from "@mui/material";
 import {
+  pause,
+  play,
   selectCurrentTrack,
   selectIsPlay,
   selectPlayingSource,
 } from "@/lib/features/tracks/tracks.slice";
 import ButtonPause from "@/components/button/button.pause";
+import WebsiteInformation from "@/components/footer/website-information";
+import {
+  selectScrollCenter,
+  setColorAndName,
+  setCoverHeight,
+} from "@/lib/features/scroll-center/scroll-center.slice";
 
 interface IProps {}
 
 const CollectionTracksPage = ({}: IProps) => {
   const session = useAppSelector(selectSession);
   const dispatch = useAppDispatch();
-  const imgRef = useRef<HTMLImageElement>(null);
+
   const anchorRef = useRef<HTMLImageElement>(null);
-  const [coverColor, setCoverColor] = useState("");
+
   const [isOpenDialogTypeForm, setIsOpenDialogTypeForm] =
     useState<boolean>(false);
   const [typeForm, setTypeForm] = useState<TypeForm>("normal");
   const isDesktop = useMediaQuery("(min-width: 992px)");
   const isPlay = useAppSelector(selectIsPlay);
-  const currentTrack = useAppSelector(selectCurrentTrack);
+
   const playingSource = useAppSelector(selectPlayingSource);
+
+  const scrollCenter = useAppSelector(selectScrollCenter);
+
   useEffect(() => {
-    if (!image_favorite) return;
+    dispatch(
+      setColorAndName({ color: "rgb(80, 56, 160)", name: "Collection" })
+    );
+  }, []);
+  const coverRef = useRef<HTMLImageElement>(null);
 
-    Vibrant.from(image_favorite)
-      .getPalette()
-      .then((palette) => {
-        if (!palette || !palette.LightVibrant) return;
+  useEffect(() => {
+    const handleSetCoverHeight = () => {
+      const coverCurrent = coverRef.current;
 
-        setCoverColor(palette.LightVibrant.hex);
-      })
-      .catch((error) => console.error("Error extracting color:", error));
-  }, [image_favorite]);
+      if (coverCurrent) {
+        const coverHeight = coverCurrent.scrollHeight;
+
+        dispatch(setCoverHeight({ coverHeight: coverHeight - 20 }));
+      }
+    };
+
+    if (scrollCenter) {
+      handleSetCoverHeight(); // Chỉ chạy sau khi có dữ liệu
+      window.addEventListener("resize", handleSetCoverHeight);
+      return () => window.removeEventListener("resize", handleSetCoverHeight);
+    }
+  }, [scrollCenter]);
+
+  const handlePlayPause = (isPlay: boolean) => {
+    if (isPlay && session) {
+      dispatch(
+        play({
+          currentTrack: session?.user.tracks[0],
+          waitTrackList: session?.user.tracks,
+          inWaitList: false,
+          playingSource: {
+            _id: "collection",
+            before: "collection",
+            in: "collection",
+            title: "collection",
+          },
+        })
+      );
+    } else {
+      dispatch(pause());
+    }
+  };
+
+  useEffect(() => {
+    handlePlayPause(scrollCenter.isPlay);
+  }, [scrollCenter.isPlay]);
+
+  if (!scrollCenter.color && !scrollCenter.name) return <></>;
 
   const isPlayInCollection =
     isPlay &&
-    session?.user.tracks.some((item) => item._id === currentTrack?._id) &&
+    playingSource._id === "collection" &&
     playingSource.in === "collection";
 
-  if (!coverColor) return <></>;
+  console.log(isPlayInCollection);
 
   return (
     <div className="w-full h-full">
       {/* Ảnh Cover */}
-      <CollectionCover imgRef={imgRef} />
+      <div ref={coverRef}>
+        {" "}
+        <CollectionCover />
+      </div>
       {/* Gradient động dựa trên màu ảnh */}
       <div className="relative ">
         <div
@@ -82,9 +134,13 @@ const CollectionTracksPage = ({}: IProps) => {
             <div className="flex items-center ">
               <div className="mr-12 cursor-pointer">
                 {isPlayInCollection ? (
-                  <ButtonPause size={isDesktop ? 1.3 : 1.1} />
+                  <div onClick={() => handlePlayPause(false)}>
+                    <ButtonPause size={isDesktop ? 1.3 : 1.1} />
+                  </div>
                 ) : (
-                  <ButtonPlay size={isDesktop ? 1.3 : 1.1} />
+                  <div onClick={() => handlePlayPause(true)}>
+                    <ButtonPlay size={isDesktop ? 1.3 : 1.1} />
+                  </div>
                 )}
               </div>
               {/* <div className="mr-10">
@@ -110,9 +166,9 @@ const CollectionTracksPage = ({}: IProps) => {
               <HiMenu size={25} />
             </div>
           </div>
-
           {/*List nhạc của nghệ sĩ*/}
-          <CollectionArtistTableTrack typeForm={typeForm} />
+          <CollectionArtistTableTrack typeForm={typeForm} />{" "}
+          <WebsiteInformation />
         </div>
 
         <div className="py-3 px-6 flex flex-col 4xl:flex-row gap-6">

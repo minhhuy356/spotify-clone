@@ -51,6 +51,7 @@ const TracksCard = ({ chooseLibraryBy, setChooseLibraryBy, track }: IProps) => {
         currentTrack: track,
 
         playingSource: {
+          _id: track._id,
           in: "track",
           title: "",
           before: "track",
@@ -107,7 +108,7 @@ const TracksCard = ({ chooseLibraryBy, setChooseLibraryBy, track }: IProps) => {
         {!isLeftClose && (
           <div className="flex-col flex flex-1">
             <Link
-              href={`track/${track._id}`}
+              href={`${frontendUrl}track/${track._id}`}
               className={`${
                 isTrackCurrent ? "text-green-500" : ""
               } hover:underline`}

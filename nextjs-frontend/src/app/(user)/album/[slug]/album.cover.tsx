@@ -12,8 +12,9 @@ import {
   url_disk_users,
 } from "@/api/url";
 import { TiTick } from "react-icons/ti";
-import { useAppSelector } from "@/lib/hook";
+import { useAppDispatch, useAppSelector } from "@/lib/hook";
 import { selectSession } from "@/lib/features/auth/auth.slice";
+import { setCoverHeight } from "@/lib/features/scroll-center/scroll-center.slice";
 
 interface IProps {
   imgRef: RefObject<HTMLImageElement | null>;

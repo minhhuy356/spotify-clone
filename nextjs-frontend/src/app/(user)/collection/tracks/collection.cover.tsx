@@ -13,11 +13,9 @@ import { TiTick } from "react-icons/ti";
 import { useAppSelector } from "@/lib/hook";
 import { selectSession } from "@/lib/features/auth/auth.slice";
 
-interface IProps {
-  imgRef: RefObject<HTMLImageElement | null>;
-}
+interface IProps {}
 
-const CollectionCover = ({ imgRef }: IProps) => {
+const CollectionCover = ({}: IProps) => {
   const session = useAppSelector(selectSession);
 
   return (
@@ -40,7 +38,6 @@ const CollectionCover = ({ imgRef }: IProps) => {
           <div className=" [height:clamp(128px,12vw,232px)] [width:clamp(128px,12vw,232px)] ">
             <img
               crossOrigin="anonymous"
-              ref={imgRef}
               src={image_favorite}
               // alt={artist._id}
               className="rounded object-cover object-top image-avatar-artist aspect-square"

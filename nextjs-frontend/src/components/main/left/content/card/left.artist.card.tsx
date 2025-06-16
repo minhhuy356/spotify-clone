@@ -62,6 +62,7 @@ const ArtistsCard = ({ chooseLibraryBy, artist }: IProps) => {
             tracksByArtist[0],
 
           playingSource: {
+            _id: artist._id,
             in: "artist",
             title: artist.stageName,
             before: "artist",
@@ -96,12 +97,12 @@ const ArtistsCard = ({ chooseLibraryBy, artist }: IProps) => {
     isPlay &&
     playingSource.in === "artist" &&
     currentTrack &&
-    currentTrack.releasedBy._id === artist._id;
+    playingSource._id === artist._id;
 
   const isArtistCurrent =
     currentTrack &&
     playingSource.in === "artist" &&
-    currentTrack.releasedBy._id === artist._id;
+    playingSource._id === artist._id;
 
   if (
     (chooseLibraryBy !== "artist" && chooseLibraryBy !== "all") ||

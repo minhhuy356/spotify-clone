@@ -33,6 +33,18 @@ import AlbumOpenratingArea from "./album.operating-area";
 import AlbumListAblum from "./album.list-album";
 import Divider from "@/components/divider/divider";
 import WebsiteInformation from "@/components/footer/website-information";
+import {
+  setColorAndName,
+  setCoverHeight,
+  setScrollCenter,
+} from "@/lib/features/scroll-center/scroll-center.slice";
+import HeaderScroll from "@/components/header/header.scroll";
+import {
+  selectCurrentTrack,
+  selectIsPlay,
+  selectListenFirst,
+  selectPlayingSource,
+} from "@/lib/features/tracks/tracks.slice";
 
 interface IProps {}
 
@@ -41,8 +53,6 @@ const AlbumPage = ({}: IProps) => {
 
   const params = useParams<{ slug: string }>();
   const slug = params.slug;
-
-  const session = useAppSelector(selectSession);
   const dispatch = useAppDispatch();
   const imgRef = useRef<HTMLImageElement>(null);
 
@@ -52,6 +62,26 @@ const AlbumPage = ({}: IProps) => {
     useState<boolean>(false);
   const [typeForm, setTypeForm] = useState<TypeForm>("normal");
   const [album, setAlbum] = useState<IAlbum>();
+
+  const coverRef = useRef<HTMLImageElement>(null);
+
+  useEffect(() => {
+    const handleSetCoverHeight = () => {
+      const coverCurrent = coverRef.current;
+
+      if (coverCurrent) {
+        const coverHeight = coverCurrent.scrollHeight;
+
+        dispatch(setCoverHeight({ coverHeight: coverHeight - 20 }));
+      }
+    };
+
+    if (album && coverColor && trackByAlbum) {
+      handleSetCoverHeight(); // Chỉ chạy sau khi có dữ liệu
+      window.addEventListener("resize", handleSetCoverHeight);
+      return () => window.removeEventListener("resize", handleSetCoverHeight);
+    }
+  }, [album, coverColor, trackByAlbum]);
 
   const fetchAlbum = async () => {
     if (!slug) return; // tránh lỗi khi chưa có slug
@@ -111,6 +141,7 @@ const AlbumPage = ({}: IProps) => {
           // Làm sáng hơn 1 tí
           const lighterColor = Color(darkestSwatch.hex).lighten(0.4).hex();
           setCoverColor(lighterColor);
+          dispatch(setColorAndName({ color: lighterColor, name: album.name }));
         }
       })
       .catch((error) => console.error("Error extracting color:", error));
@@ -119,14 +150,17 @@ const AlbumPage = ({}: IProps) => {
   if (!coverColor || !album || !trackByAlbum) return <></>;
 
   return (
-    <div className="w-full h-full">
+    <div className="w-full h-full relative">
+      {" "}
       {/* Ảnh Cover */}
-      <AlbumCover
-        imgRef={imgRef}
-        album={album}
-        mainColor={coverColor}
-        trackByAlbum={trackByAlbum}
-      />
+      <div ref={coverRef}>
+        <AlbumCover
+          imgRef={imgRef}
+          album={album}
+          mainColor={coverColor}
+          trackByAlbum={trackByAlbum}
+        />
+      </div>
       {/* Gradient động dựa trên màu ảnh */}
       <div className="relative flex flex-col">
         <div
@@ -164,9 +198,7 @@ const AlbumPage = ({}: IProps) => {
           <div className="my-8">
             <AlbumListAblum album={album} />
           </div>{" "}
-          <div className="px-4 ">
-            <WebsiteInformation />
-          </div>
+          <WebsiteInformation />
         </div>
       </div>
     </div>

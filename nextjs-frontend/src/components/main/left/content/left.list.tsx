@@ -15,7 +15,7 @@ import ContextMenuAlbum from "@/components/context-menu/context-menu.album";
 import ContextMenuFolder from "@/components/context-menu/context-menu.folder";
 import ContextMenuPlaylist from "@/components/context-menu/context-menu.playlist";
 import ModalDeleteFolder from "@/components/modal/modal.custom";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   selectTemporaryAlbum,
   selectTemporaryArtist,
@@ -59,7 +59,7 @@ interface IAlbumWithType extends IAlbum {
 
 const ListLibrary = ({ chooseLibraryBy, setChooseLibraryBy }: IProps) => {
   const dispatch = useAppDispatch();
-
+  const headerRef = useRef<HTMLDivElement>(null);
   const session = useAppSelector(selectSession);
   const { setNotification } = useNotification();
 
@@ -149,11 +149,8 @@ const ListLibrary = ({ chooseLibraryBy, setChooseLibraryBy }: IProps) => {
     setListLibrary(newListLibrary);
   }, [session?.user]);
 
-  if (!session) return <></>;
-
   return (
     <div>
-      {" "}
       {listLibrary.length > 0 &&
         listLibrary.map((item: any, index: number) => {
           if (item.type === "album") {
@@ -220,7 +217,7 @@ const ListLibrary = ({ chooseLibraryBy, setChooseLibraryBy }: IProps) => {
       <ContextMenuFolder
         setIsOpenModalDeleteFolder={setIsOpenModalDeleteFolder}
       />
-      <ModalCustom
+      {/* <ModalCustom
         isOpen={isOpenModalDeleteFolder}
         setIsOpen={setIsOpenModalDeleteFolder}
         body={
@@ -386,7 +383,7 @@ const ListLibrary = ({ chooseLibraryBy, setChooseLibraryBy }: IProps) => {
             }
           }
         }}
-      />
+      /> */}
       <ModalUpdatePlaylist
         isOpen={isOpenModalUpdatePlaylist}
         setIsOpen={setIsOpenModalUpdatePlaylist}

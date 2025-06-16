@@ -42,11 +42,8 @@ const LeftHeader = ({
   };
 
   return (
-    <div className="py-4 px-4 flex flex-col gap-4 ">
-      <div
-        className=" flex top-0 z-10 bg-base overflow-hidden text-white-06 justify-between items-center mb-2"
-        ref={headerRef}
-      >
+    <div className="py-4 px-4 flex flex-col gap-4 " ref={headerRef}>
+      <div className=" flex top-0 z-10 bg-base overflow-hidden text-white-06 justify-between items-center mb-2">
         <div className="flex gap-1 w-full relative">
           <div
             className={`w-fit rounded-full text-black border-solid border-black cursor-pointer flex ${

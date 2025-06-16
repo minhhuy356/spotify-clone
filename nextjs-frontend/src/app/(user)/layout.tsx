@@ -29,6 +29,8 @@ import {
 } from "@/lib/features/tracks/tracks.slice";
 import ModalListenFirst from "@/components/modal/listen-first/listen-first.modal";
 import WebsiteInformation from "@/components/footer/website-information";
+import HeaderScroll from "@/components/header/header.scroll";
+import { selectSession } from "@/lib/features/auth/auth.slice";
 
 interface ILayout {
   left: { width: number; isClose: boolean };
@@ -38,8 +40,10 @@ interface ILayout {
 
 export default function RootLayout({
   children,
+  openRatingRef,
 }: {
   children: React.ReactNode;
+  openRatingRef?: React.RefObject<HTMLDivElement>;
 }) {
   const layoutBasic = {
     left: { width: 300, isClose: false },
@@ -47,11 +51,15 @@ export default function RootLayout({
     center: 0,
   };
 
+  const session = useAppSelector(selectSession);
+
   const [layoutState, setLayoutState] = useState<ILayout>(layoutBasic);
 
   const [screenWidth, setScreenWidth] = useState<number>(0);
 
   const [isLayout, setIsLayout] = useState<boolean>(false);
+
+  const [scrollCenter, setScrollCenter] = useState<number>(0);
 
   const leftRef = useRef<HTMLDivElement | null>(null);
   const centerRef = useRef<HTMLDivElement | null>(null);
@@ -424,7 +432,7 @@ export default function RootLayout({
     window.addEventListener("mouseup", onMouseUp);
   };
 
-  if (!isLayout) return null;
+  if (!isLayout || !session) return <></>;
 
   return (
     <div
@@ -436,8 +444,8 @@ export default function RootLayout({
       <div className="relative h-screen w-full">
         <div
           className={`grid 
-               grid-rows-[auto_1fr_auto]
-          bg-base h-screen`}
+                grid-rows-[auto_1fr_auto]
+            bg-base h-screen`}
         >
           <div className="w-full bg-black">
             <AppHeader />
@@ -464,12 +472,19 @@ export default function RootLayout({
             />
 
             <div
-              className="rounded-lg bg-base min-h-0 overflow-hidden"
+              className="rounded-lg bg-base min-h-0 overflow-hidden relative"
               ref={centerRef}
             >
               <div className="w-full text-white h-full">
-                <ScrollBar fatherRef={centerRef}>{children} </ScrollBar>
-              </div>
+                <ScrollBar
+                  setScroll={setScrollCenter}
+                  fatherRef={centerRef}
+                  position={"center"}
+                >
+                  {children}
+                </ScrollBar>
+              </div>{" "}
+              <HeaderScroll />
             </div>
 
             <div

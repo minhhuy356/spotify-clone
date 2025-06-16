@@ -21,6 +21,7 @@ interface PlayAudioListenFirst {
 }
 
 interface PlayingSource {
+  _id: string;
   in: Where | null;
   title?: string;
   before: Where | null;
@@ -101,6 +102,7 @@ const initialState: ItracksState = {
   },
 
   playingSource: {
+    _id: "",
     in: null,
     title: "",
     before: null,

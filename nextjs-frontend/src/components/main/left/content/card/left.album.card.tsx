@@ -59,6 +59,7 @@ const AlbumsCard = ({ chooseLibraryBy, album }: IProps) => {
             tracksByAlbum.find((item) => item.order === 1) || tracksByAlbum[0],
 
           playingSource: {
+            _id: album._id,
             in: "album",
             title: album.name,
             before: "album",
@@ -100,9 +101,9 @@ const AlbumsCard = ({ chooseLibraryBy, album }: IProps) => {
       isAlbumPlaying =
         isPlay &&
         playingSource.in === "album" &&
-        currentTrack.album._id === album._id;
+        playingSource._id === album._id;
       isCurrentAlbum =
-        playingSource.in === "album" && currentTrack.album._id === album._id;
+        playingSource.in === "album" && playingSource._id === album._id;
     } else {
       isAlbumPlaying = false;
     }
@@ -140,7 +141,7 @@ const AlbumsCard = ({ chooseLibraryBy, album }: IProps) => {
           {!isLeftClose && (
             <div className=" flex-col  flex flex-1">
               <Link
-                href={`album/${album._id}`}
+                href={`${frontendUrl}album/${album._id}`}
                 className={`${
                   isCurrentAlbum ? "text-green-500" : ""
                 } hover:underline`}
@@ -150,7 +151,7 @@ const AlbumsCard = ({ chooseLibraryBy, album }: IProps) => {
               <span className="text-white-06 text-[0.85rem] line-clamp-1">
                 Album -{" "}
                 <Link
-                  href={`${frontendUrl}/artist/${album.releasedBy._id}`}
+                  href={`${frontendUrl}artist/${album.releasedBy._id}`}
                   className="hover:underline hover:text-white"
                 >
                   {album.releasedBy.stageName}

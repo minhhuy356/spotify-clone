@@ -63,7 +63,7 @@ const WebsiteInformation = ({}: IProps) => {
     },
   ];
   return (
-    <div className="flex flex-col">
+    <div className="flex flex-col px-4">
       <div className="my-8">
         <Divider />
       </div>

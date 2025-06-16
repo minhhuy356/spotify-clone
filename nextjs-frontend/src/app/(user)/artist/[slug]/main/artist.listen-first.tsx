@@ -1,6 +1,6 @@
 import VideoThumbnail from "@/components/video/video.thumnail";
 import { useAppDispatch, useAppSelector } from "@/lib/hook";
-import { IAlbum, ITrack } from "@/types/data";
+import { IAlbum, IArtist, ITrack } from "@/types/data";
 import { HTMLAttributes, useState } from "react";
 import {
   selectPlayingSource,
@@ -8,12 +8,12 @@ import {
 } from "@/lib/features/tracks/tracks.slice";
 
 interface IProps extends HTMLAttributes<HTMLDivElement> {
-  album: IAlbum;
+  artist: IArtist;
   allTrack: ITrack[];
   coverColor: string;
 }
 
-const AlbumListenFirst = ({ coverColor, allTrack, album }: IProps) => {
+const ArtistListenFirst = ({ coverColor, allTrack, artist }: IProps) => {
   const dispatch = useAppDispatch();
 
   const playingSource = useAppSelector(selectPlayingSource);
@@ -28,13 +28,13 @@ const AlbumListenFirst = ({ coverColor, allTrack, album }: IProps) => {
                 color: coverColor,
               },
               playingSource: {
-                _id: album._id,
-                in: "album",
+                _id: artist._id,
+                in: "artist",
                 title: "",
                 before: playingSource.before,
               },
               playingAudioListenFirst: {
-                title: album.name,
+                title: artist.stageName,
                 isPlayListenFirst: true,
                 allTrack: allTrack,
                 trackIndex: 0,
@@ -48,4 +48,4 @@ const AlbumListenFirst = ({ coverColor, allTrack, album }: IProps) => {
     </div>
   );
 };
-export default AlbumListenFirst;
+export default ArtistListenFirst;

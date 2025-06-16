@@ -176,7 +176,7 @@ const ContextMenuAlbum = ({ setIsOpenModalDeleteAlbum }: IHTMLProps) => {
   //   // }
   // };
 
-  if (!isOpenContextMenuAlbum || !temporaryAlbum || !session) return null; // Ẩn menu nếu không mở
+  if (!isOpenContextMenuAlbum || !temporaryAlbum || !session) return <></>; // Ẩn menu nếu không mở
 
   const handlePin = async (pinned: boolean) => {
     handleCloseTab();

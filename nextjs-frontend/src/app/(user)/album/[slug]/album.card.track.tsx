@@ -15,6 +15,7 @@ import {
   play,
   selectCurrentTrack,
   selectIsPlay,
+  selectPlayingSource,
 } from "@/lib/features/tracks/tracks.slice";
 import { useAppDispatch, useAppSelector } from "@/lib/hook";
 
@@ -51,6 +52,7 @@ const AlbumCardTrack = ({
   const isPlay = useAppSelector(selectIsPlay);
   const currentTrack = useAppSelector(selectCurrentTrack);
   const session = useAppSelector(selectSession);
+  const playingSource = useAppSelector(selectPlayingSource);
 
   const { setNotification } = useNotification();
 
@@ -84,6 +86,7 @@ const AlbumCardTrack = ({
               currentTrack: track,
 
               playingSource: {
+                _id: album._id,
                 in: "album",
                 title: "bài hát đã thích",
                 before: "album",
@@ -102,6 +105,7 @@ const AlbumCardTrack = ({
             waitTrackList: trackByAlbum,
             currentTrack: track,
             playingSource: {
+              _id: album._id,
               in: "album",
               title: album.name,
               before: "album",
@@ -195,14 +199,19 @@ const AlbumCardTrack = ({
       >
         <span
           className={`font-semibold ${
-            currentTrack && currentTrack._id === track._id
+            playingSource.in === "album" &&
+            currentTrack &&
+            currentTrack._id === track._id
               ? "text-green-500"
               : "text-white-06"
           }   group-hover:hidden `}
         >
           {index + 1}
         </span>
-        {currentTrack && currentTrack._id === track._id && isPlay ? (
+        {playingSource.in === "album" &&
+        currentTrack &&
+        currentTrack._id === track._id &&
+        isPlay ? (
           <FaPause
             size={15}
             className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 hidden group-hover:block"

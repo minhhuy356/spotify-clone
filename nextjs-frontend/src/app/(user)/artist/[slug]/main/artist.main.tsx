@@ -22,13 +22,22 @@ import AvatarArtist from "./back-ground.tsx/artist.avatar";
 import CoverArtist from "./back-ground.tsx/artist.cover";
 import { useMediaQuery } from "@mui/material";
 import {
+  pause,
+  play,
   selectCurrentTrack,
   selectIsPlay,
-  selectModalListenFirst,
   selectPlayingSource,
 } from "@/lib/features/tracks/tracks.slice";
 import ButtonPause from "@/components/button/button.pause";
 import ButtonSubscribeArtist from "@/components/button/button.subscribe.artist";
+import WebsiteInformation from "@/components/footer/website-information";
+import {
+  selectScrollCenter,
+  setColorAndName,
+  setCoverHeight,
+} from "@/lib/features/scroll-center/scroll-center.slice";
+import AlbumListenFirst from "@/app/(user)/album/[slug]/album.listen-first";
+import ArtistListenFirst from "./artist.listen-first";
 
 interface IProps {
   artist: IArtist;
@@ -46,12 +55,13 @@ const MainArtist = ({
   const session = useAppSelector(selectSession);
   const dispatch = useAppDispatch();
   const imgRef = useRef<HTMLImageElement>(null);
-  const [coverColor, setCoverColor] = useState("");
-  const [avatarColor, setAvatarColor] = useState("");
+  const scrollCenter = useAppSelector(selectScrollCenter);
   const isDesktop = useMediaQuery("(min-width: 992px)");
   const isPlay = useAppSelector(selectIsPlay);
   const currentTrack = useAppSelector(selectCurrentTrack);
   const playingSource = useAppSelector(selectPlayingSource);
+  const [color, setColor] = useState("");
+
   useEffect(() => {
     if (!artist) return;
 
@@ -91,12 +101,28 @@ const MainArtist = ({
         }
 
         if (dominantSwatch) {
-          setCoverColor(dominantSwatch.hex);
+          if (artist.coverImgUrl) {
+            setColor(dominantSwatch.hex);
+            dispatch(
+              setColorAndName({
+                color: dominantSwatch.hex,
+                name: artist.stageName,
+              })
+            );
+          }
         } else {
         }
 
         if (brightestSwatch) {
-          setAvatarColor(brightestSwatch.hex);
+          if (!artist.coverImgUrl) {
+            setColor(brightestSwatch.hex);
+            dispatch(
+              setColorAndName({
+                color: brightestSwatch.hex,
+                name: artist.stageName,
+              })
+            );
+          }
         }
       })
       .catch((error) => console.error("Error extracting color:", error));
@@ -110,36 +136,82 @@ const MainArtist = ({
     session?.user.artists.some((item) => item._id === currentTrack?._id) &&
     playingSource.in === "artist";
 
-  if (!coverColor || !avatarColor) return <></>;
+  const coverRef = useRef<HTMLImageElement>(null);
+
+  useEffect(() => {
+    const handleSetCoverHeight = () => {
+      const coverCurrent = coverRef.current;
+
+      if (coverCurrent) {
+        const coverHeight = coverCurrent.scrollHeight;
+
+        dispatch(setCoverHeight({ coverHeight: coverHeight - 20 }));
+      }
+    };
+
+    if (scrollCenter.color) {
+      handleSetCoverHeight(); // Chỉ chạy sau khi có dữ liệu
+      window.addEventListener("resize", handleSetCoverHeight);
+      return () => window.removeEventListener("resize", handleSetCoverHeight);
+    }
+  }, [scrollCenter.color]);
+
+  const handlePlayPause = (isPlay: boolean) => {
+    if (isPlay) {
+      dispatch(
+        play({
+          currentTrack: trackForArtist[0],
+          waitTrackList: trackForArtist,
+          inWaitList: false,
+          playingSource: {
+            _id: artist._id,
+            before: "artist",
+            in: "artist",
+            title: artist.stageName,
+          },
+        })
+      );
+    } else {
+      dispatch(pause());
+    }
+  };
+
+  useEffect(() => {
+    handlePlayPause(scrollCenter.isPlay);
+  }, [scrollCenter.isPlay]);
+
+  if (scrollCenter.color === "") return <></>;
 
   return (
     <div className="w-full h-full">
       {/* Ảnh Cover */}
-
-      {!artist.coverImgUrl ? (
-        <>
-          <AvatarArtist
-            mainColor={avatarColor}
+      <div ref={coverRef}>
+        {!artist.coverImgUrl ? (
+          <>
+            <AvatarArtist
+              mainColor={scrollCenter.color}
+              artist={artist}
+              imgRef={imgRef}
+              monthlyListener={monthlyListener}
+            />
+          </>
+        ) : (
+          <CoverArtist
+            mainColor={scrollCenter.color}
             artist={artist}
             imgRef={imgRef}
             monthlyListener={monthlyListener}
           />
-        </>
-      ) : (
-        <CoverArtist
-          mainColor={coverColor}
-          artist={artist}
-          imgRef={imgRef}
-          monthlyListener={monthlyListener}
-        />
-      )}
+        )}
+      </div>
+
       {/* Gradient động dựa trên màu ảnh */}
       <div className="relative ">
         <div
           className="w-full [height:clamp(179px,12vw,232px)]"
           style={{
             background: `linear-gradient(to bottom, ${Color(
-              artist.coverImgUrl ? coverColor : avatarColor
+              scrollCenter.color
             ).hex()} 0%, transparent 100%)`,
             opacity: artist.coverImgUrl ? 0.7 : 0.2,
           }}
@@ -148,12 +220,23 @@ const MainArtist = ({
           <div className="max-w-[1955px] mx-auto w-full">
             <div className="px-8 py-8">
               <div className="flex items-center ">
-                <div className="mr-12 cursor-pointer">
+                <div className="mr-8 cursor-pointer">
                   {isPlayInArtist ? (
-                    <ButtonPause size={isDesktop ? 1.3 : 1.1} />
+                    <div onClick={() => handlePlayPause(false)}>
+                      <ButtonPause size={isDesktop ? 1.3 : 1.1} />
+                    </div>
                   ) : (
-                    <ButtonPlay size={isDesktop ? 1.3 : 1.1} />
-                  )}
+                    <div onClick={() => handlePlayPause(true)}>
+                      <ButtonPlay size={isDesktop ? 1.3 : 1.1} />
+                    </div>
+                  )}{" "}
+                </div>{" "}
+                <div className="bg-inherit mr-10">
+                  <ArtistListenFirst
+                    artist={artist}
+                    coverColor={scrollCenter.color}
+                    allTrack={trackForArtist}
+                  />
                 </div>
                 <div className="mr-10 cursor-pointer">
                   <ButtonSubscribeArtist
@@ -185,6 +268,8 @@ const MainArtist = ({
 
               {/*Lựa chọn của nghệ sĩ*/}
             </div>
+
+            <WebsiteInformation />
           </div>
         </div>
       </div>

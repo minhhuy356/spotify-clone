@@ -14,17 +14,20 @@ import { useAppDispatch, useAppSelector } from "@/lib/hook";
 import { user_activity_service } from "@/service/user-activity.service";
 import { IAlbum, ITrack } from "@/types/data";
 import { useMediaQuery } from "@mui/material";
-import { HTMLAttributes, useRef } from "react";
+import { HTMLAttributes, useEffect, useRef } from "react";
 import { HiMenu, HiOutlineArrowCircleDown } from "react-icons/hi";
 import { HiOutlineArrowDownCircle } from "react-icons/hi2";
 import AlbumListenFirst from "./album.listen-first";
 import ButtonPause from "@/components/button/button.pause";
 import {
+  pause,
+  play,
   selectCurrentTrack,
   selectIsPlay,
   selectListenFirst,
   selectPlayingSource,
 } from "@/lib/features/tracks/tracks.slice";
+import { selectScrollCenter } from "@/lib/features/scroll-center/scroll-center.slice";
 
 interface IProps extends HTMLAttributes<HTMLDivElement> {
   isOpenDialogTypeForm: boolean;
@@ -46,11 +49,12 @@ const AlbumOpenratingArea = ({
   coverColor,
 }: IProps) => {
   const anchorRef = useRef<HTMLImageElement>(null);
-  const session = useAppSelector(selectSession);
+
   const dispatch = useAppDispatch();
   const { setNotification } = useNotification();
   const isDesktop = useMediaQuery("(min-width: 992px)");
   const isPlay = useAppSelector(selectIsPlay);
+  const session = useAppSelector(selectSession);
   const listenFirst = useAppSelector(selectListenFirst);
   const currentTrack = useAppSelector(selectCurrentTrack);
   const playingSource = useAppSelector(selectPlayingSource);
@@ -111,14 +115,42 @@ const AlbumOpenratingArea = ({
   const isSubscribeAlbum =
     session?.user.albums.some((t) => t._id === album._id) || false;
 
+  const handlePlayPause = (isPlay: boolean) => {
+    if (isPlay) {
+      dispatch(
+        play({
+          currentTrack: trackByAlbum[0],
+          waitTrackList: trackByAlbum,
+          inWaitList: false,
+          playingSource: {
+            _id: album._id,
+            before: "album",
+            in: "album",
+            title: album.name,
+          },
+        })
+      );
+    } else {
+      dispatch(pause());
+    }
+  };
+  const scrollCenter = useAppSelector(selectScrollCenter);
+  useEffect(() => {
+    handlePlayPause(scrollCenter.isPlay);
+  }, [scrollCenter.isPlay]);
+
   return (
     <div className="flex justify-between bg-inherit ">
       <div className="flex items-center gap-4 bg-inherit">
         <div className="mr-0 lg:mr-2 cursor-pointer">
           {isPlayInAlbum && !listenFirst.modalListenFirst.isOpen ? (
-            <ButtonPause size={isDesktop ? 1.3 : 1.1} />
+            <div onClick={() => handlePlayPause(false)}>
+              <ButtonPause size={isDesktop ? 1.3 : 1.1} />
+            </div>
           ) : (
-            <ButtonPlay size={isDesktop ? 1.3 : 1.1} />
+            <div onClick={() => handlePlayPause(true)}>
+              <ButtonPlay size={isDesktop ? 1.3 : 1.1} />
+            </div>
           )}
         </div>
         <div className="flex items-center gap-2 sm:gap-4 flex-wrap bg-inherit">
@@ -127,7 +159,7 @@ const AlbumOpenratingArea = ({
             <AlbumListenFirst
               album={album}
               coverColor={coverColor}
-              trackByAlbum={trackByAlbum}
+              allTrack={trackByAlbum}
             />
           </div>
           {/* Subscribe Button */}
