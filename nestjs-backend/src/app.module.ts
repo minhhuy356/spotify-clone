@@ -30,6 +30,7 @@ import { UserFolder } from './user-folder/schemas/user-folder.schema';
 import { UserFoldersModule } from './user-folder/user-folder.module';
 import { UserDailyFetchedTracksModule } from './user-daily-fetched-tracks/user-daily-fetched-tracks.module';
 import { TagsModule } from './tag/tag.module';
+import { LyricsModule } from './lyrics/lyrics.module';
 
 @Module({
   imports: [
@@ -72,6 +73,7 @@ import { TagsModule } from './tag/tag.module';
     UserFoldersModule,
     UserDailyFetchedTracksModule,
     TagsModule,
+    LyricsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
