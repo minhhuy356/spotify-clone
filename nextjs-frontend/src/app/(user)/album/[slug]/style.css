@@ -1,0 +1,19 @@
+.album-grid-container {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(180px, 1fr);
+  gap: 16px;
+  overflow-x: hidden;
+  width: 100%;
+  position: relative;
+}
+
+.album-grid-item {
+  transition: opacity 0.3s ease;
+}
+
+.album-grid-item.hidden {
+  opacity: 0;
+  pointer-events: none;
+  position: absolute;
+}

@@ -1,0 +1,11 @@
+.cursor-grab {
+  cursor: grab;
+}
+.cursor-grabbing {
+  cursor: grabbing;
+}
+
+.track:hover .play {
+  opacity: 1; /* Ví dụ: Hiển thị nút play khi hover */
+  bottom: 8px;
+}

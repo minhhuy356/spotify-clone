@@ -1,0 +1,48 @@
+html,
+body {
+  height: 100%;
+  margin: 0;
+}
+
+/* width */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+/* Track */
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* Handle */
+::-webkit-scrollbar-thumb {
+  background: #dddddd;
+}
+
+@property --var1 {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: rgba(255, 255, 255, 0);
+}
+
+.scrollbar-group {
+  height: 100%;
+  width: 100%;
+  overflow-y: scroll;
+  transition: --var1 0.5s ease-in-out 1s; /* Trì hoãn biến mất */
+}
+
+.scrollbar-group:hover {
+  --var1: #dddddd;
+  transition: --var1 0s; /* Hiện ngay lập tức */
+}
+
+.scrollbar-group::-webkit-scrollbar {
+  background: transparent;
+  width: 8px;
+}
+
+.scrollbar-group::-webkit-scrollbar-thumb {
+  background: var(--var1);
+}

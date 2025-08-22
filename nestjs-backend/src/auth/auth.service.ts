@@ -1,0 +1,235 @@
+import {
+  BadRequestException,
+  HttpException,
+  HttpStatus,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
+import { UsersService } from '../users/users.service';
+import { JwtService } from '@nestjs/jwt';
+import { IUser, IUserToken } from '@/users/users.interface';
+import { CreateUserDto } from '@/users/dto/create-user.dto';
+import { ConfigService } from '@nestjs/config';
+import ms from 'ms';
+import { Algorithm } from 'jsonwebtoken';
+import { Response } from 'express';
+import { UserActivitysService } from '@/user_activity/user-activity.service';
+import * as jwt from 'jsonwebtoken';
+import { TrackArtistsService } from '@/track-artist/track-artist.service';
+
+@Injectable()
+export class AuthService {
+  constructor(
+    private usersService: UsersService,
+    private userActivityService: UserActivitysService,
+    private trackArtistService: TrackArtistsService,
+    private jwtService: JwtService,
+    private configService: ConfigService,
+  ) {}
+
+  async validateUser(username: string, pass: string): Promise<any> {
+    const user = await this.usersService.findByUserName(username);
+
+    if (!user) throw new HttpException('User not found', HttpStatus.NOT_FOUND);
+
+    const isValid = await this.usersService.isValidPassword(
+      pass,
+      user.password,
+    );
+
+    if (isValid) {
+      return user;
+    }
+    return null;
+  }
+
+  async login(user: IUser, response: Response) {
+    const { _id, name, email, roles, imgUrl } = user;
+
+    const payload = {
+      sub: 'token login',
+      iss: 'from server',
+      _id,
+      name,
+      imgUrl,
+      email,
+      roles,
+    };
+
+    const refresh_token = await this.createRefreshToken({ email });
+
+    const update = await this.usersService.updateUserToken(refresh_token, _id);
+
+    response.cookie('refresh_token', refresh_token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: ms(this.configService.get<string>('JWT_REFRESH_EXPRIRE')) * 1000,
+    });
+
+    const userActivity = await this.userActivityService.findById(
+      _id.toString(),
+    );
+    const { tracks, artists, albums, playlists, folders } = userActivity;
+
+    const tracksWithArtist = (
+      await Promise.all(
+        tracks.map(
+          async (item: any) => await this.trackArtistService.findById(item),
+        ),
+      )
+    ).flat();
+
+    return {
+      access_token: await this.jwtService.signAsync(payload),
+      refresh_token: refresh_token,
+      user: {
+        _id,
+        name,
+        imgUrl,
+        email,
+        roles,
+        tracks: tracksWithArtist,
+        artists,
+        albums,
+        playlists,
+        folders,
+      },
+    };
+  }
+
+  async register(createUserDto: CreateUserDto) {
+    return await this.usersService.register(createUserDto);
+  }
+
+  createRefreshToken = async (payload: any) => {
+    const algorithm = this.configService.get<string>(
+      'JWT_REFRESH_ALGORITHM',
+    ) as Algorithm;
+
+    const refresh_token = await this.jwtService.signAsync(payload, {
+      secret: this.configService.get<string>('JWT_REFRESH_PRIVATE_KEY'),
+      algorithm: algorithm,
+      expiresIn:
+        ms(this.configService.get<string>('JWT_REFRESH_EXPRIRE')) / 1000,
+    });
+
+    return refresh_token;
+  };
+
+  processNewToken = async (refresh_token: string, response: Response) => {
+    try {
+      await this.jwtService.verifyAsync(refresh_token, {
+        secret: this.configService.get<string>('JWT_REFRESH_PRIVATE_KEY'),
+      });
+
+      const user = await this.usersService.findUserByToken(refresh_token);
+      console.log('user', user);
+      if (user) {
+        const { _id, name, email, roles, imgUrl } = user;
+
+        const payload = {
+          sub: 'token login',
+          iss: 'from server',
+          _id,
+          email,
+          name,
+          imgUrl,
+          roles,
+        };
+
+        const update = await this.usersService.updateUserToken(
+          refresh_token,
+          _id.toString(),
+        );
+
+        response.cookie('refresh_token', refresh_token, {
+          httpOnly: true,
+          sameSite: 'lax',
+          maxAge:
+            ms(this.configService.get<string>('JWT_REFRESH_EXPRIRE')) * 1000,
+        });
+
+        const userActivity = await this.userActivityService.findById(
+          _id.toString(),
+        );
+
+        const { tracks, artists, albums, playlists, folders } = userActivity;
+
+        return {
+          access_token: await this.jwtService.signAsync(payload),
+          refresh_token: refresh_token,
+          user: {
+            _id,
+            name,
+            imgUrl,
+            email,
+            roles,
+            tracks,
+            artists,
+            albums,
+            playlists,
+            folders,
+          },
+        };
+      } else {
+        throw new Error();
+      }
+    } catch (error) {
+      if (error.name === 'TokenExpiredError') {
+        throw new UnauthorizedException(
+          'Refresh token expired, please login again.',
+        );
+      } else {
+        throw new BadRequestException('Invalid Refresh token. Please login');
+      }
+    }
+  };
+
+  logout = async (user: IUser, response: Response) => {
+    try {
+      if (user) {
+        response.clearCookie('refresh_token', {
+          path: '/',
+          httpOnly: true,
+          secure: true,
+          sameSite: 'lax',
+        });
+
+        await this.usersService.updateUserToken('', user._id);
+
+        return 'ok';
+      }
+    } catch (error) {
+      throw new BadRequestException('Invalid Access token!');
+    }
+  };
+
+  getRefreshToken = async (refreshToken: string) => {
+    try {
+      if (!refreshToken) {
+        throw new Error('Không tìm thấy refresh token!');
+      }
+
+      const decoded = jwt.decode(refreshToken) as { exp: number } | null;
+
+      return { refreshToken, decoded };
+    } catch (error) {
+      throw new BadRequestException('Verify email failed!');
+    }
+  };
+
+  verifyEmail = async (accessToken: string) => {
+    try {
+      const user: IUserToken = await this.jwtService.decode(accessToken);
+
+      const result = await this.usersService.verifyEmailById(user._id);
+
+      if (!result) throw new Error();
+
+      return `Verify email ${user.email} success`;
+    } catch (error) {
+      throw new BadRequestException('Verify email failed!');
+    }
+  };
+}

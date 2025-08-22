@@ -1,0 +1,27 @@
+.path-segment {
+  stroke-dasharray: 20 75; /* ban đầu là đoạn ngắn */
+  stroke-dashoffset: 85; /* bắt đầu từ cuối */
+  animation: animateSegment 0.75s linear 2, showFull 0.5s linear 1.5s forwards;
+}
+
+/* Chạy chấm ngắn 2 lần */
+@keyframes animateSegment {
+  0% {
+    stroke-dashoffset: 85;
+  }
+  100% {
+    stroke-dashoffset: 0;
+  }
+}
+
+/* Sau 2s, ngay lập tức chuyển sang hiện stroke đầy */
+@keyframes showFull {
+  0% {
+    stroke-dasharray: 15 75;
+    stroke-dashoffset: 0;
+  }
+  100% {
+    stroke-dasharray: 85;
+    stroke-dashoffset: 0;
+  }
+}

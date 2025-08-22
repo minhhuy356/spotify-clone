@@ -1,0 +1,5 @@
+# Bỏ qua thư mục node_modules và các file không cần thiết
+node_modules/
+.vscode/
+.env
+dist/
